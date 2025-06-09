@@ -1,83 +1,88 @@
 const db = require('../config/db');
 
 exports.getAllProducts = async (req, res) => {
-    try {
-      const [rows] = await db.execute(`
-        SELECT
-          sp.id AS san_pham_id,
-          sp.ma_san_pham,
-          sp.ten_san_pham,
-          
-          bt.id AS bien_the_id,
-          s.ten_size,
-          m.ten_mau,
-          bt.hinh_anh AS hinh_anh_bien_the,
-          
-          btlh.gia_ban,
-          btlh.so_luong,
-          
-          lh.ngay_nhap
-        FROM san_pham sp
-        JOIN bien_the_san_pham bt ON bt.san_pham_id = sp.id
-        JOIN size s ON s.id = bt.size_id
-        JOIN mau m ON m.id = bt.mau_id
-        JOIN bien_the_lo_hang btlh ON btlh.bien_the_id = bt.id
-        JOIN lo_hang lh ON lh.id = btlh.lo_hang_id
-        ORDER BY sp.id, bt.id, lh.ngay_nhap
-      `);
-      const productsMap = new Map();
-  
-      for (const row of rows) {
-        const {
-          san_pham_id,
+  try {
+    const [rows] = await db.execute(`
+      SELECT
+        sp.id AS san_pham_id,
+        sp.ma_san_pham,
+        sp.ten_san_pham,
+        
+        bt.id AS bien_the_id,
+        s.ten_size,
+        m.ten_mau,
+        bt.hinh_anh AS hinh_anh_bien_the,
+        
+        btlh.gia_ban,
+        btlh.so_luong,
+        
+        lh.id AS lo_hang_id,    -- thêm trường id lô hàng
+        lh.ngay_nhap
+      FROM san_pham sp
+      JOIN bien_the_san_pham bt ON bt.san_pham_id = sp.id
+      JOIN size s ON s.id = bt.size_id
+      JOIN mau m ON m.id = bt.mau_id
+      JOIN bien_the_lo_hang btlh ON btlh.bien_the_id = bt.id
+      JOIN lo_hang lh ON lh.id = btlh.lo_hang_id
+      ORDER BY sp.id, bt.id, lh.ngay_nhap
+    `);
+
+    const productsMap = new Map();
+
+    for (const row of rows) {
+      const {
+        san_pham_id,
+        ma_san_pham,
+        ten_san_pham,
+        bien_the_id,
+        ten_size,
+        ten_mau,
+        hinh_anh_bien_the,
+        gia_ban,
+        so_luong,
+        lo_hang_id,
+        ngay_nhap
+      } = row;
+
+      if (!productsMap.has(san_pham_id)) {
+        productsMap.set(san_pham_id, {
           ma_san_pham,
           ten_san_pham,
-          bien_the_id,
-          ten_size,
-          ten_mau,
-          hinh_anh_bien_the,
-          gia_ban,
-          so_luong,
-          ngay_nhap
-        } = row;
-  
-        if (!productsMap.has(san_pham_id)) {
-          productsMap.set(san_pham_id, {
-            ma_san_pham,
-            ten_san_pham,
-            bien_the: []
-          });
-        }
-  
-        const product = productsMap.get(san_pham_id);
-  
-        let variant = product.bien_the.find(bt => bt.bien_the_id === bien_the_id);
-        if (!variant) {
-          variant = {
-            bien_the_id,
-            size: ten_size,
-            mau: ten_mau,
-            hinh_anh: hinh_anh_bien_the,
-            lo_hang: []
-          };
-          product.bien_the.push(variant);
-        }
-  
-        variant.lo_hang.push({
-          gia_ban,
-          so_luong,
-          ngay_nhap
+          bien_the: []
         });
       }
-  
-      const result = Array.from(productsMap.values());
-  
-      res.json(result);
-    } catch (error) {
-      console.error('Lỗi truy xuất sản phẩm:', error);
-      res.status(500).json({ error: 'Lỗi máy chủ' });
+
+      const product = productsMap.get(san_pham_id);
+
+      let variant = product.bien_the.find(bt => bt.bien_the_id === bien_the_id);
+      if (!variant) {
+        variant = {
+          bien_the_id,
+          size: ten_size,
+          mau: ten_mau,
+          hinh_anh: hinh_anh_bien_the,
+          lo_hang: []
+        };
+        product.bien_the.push(variant);
+      }
+
+      variant.lo_hang.push({
+        lo_hang_id,  // id lô hàng được thêm vào đây
+        gia_ban,
+        so_luong,
+        ngay_nhap
+      });
     }
-  };
+
+    const result = Array.from(productsMap.values());
+
+    res.json(result);
+  } catch (error) {
+    console.error('Lỗi truy xuất sản phẩm:', error);
+    res.status(500).json({ error: 'Lỗi máy chủ' });
+  }
+};
+
   
 
 // // POST /products
@@ -187,5 +192,44 @@ exports.addVariant = async (req, res) => {
     res.status(500).json({ error: 'Lỗi khi thêm biến thể' });
   } finally {
     connection.release();
+  }
+};
+
+
+exports.updateProductVariant = async (req, res) => {
+  const { variantId, loHangId } = req.params;
+  const { gia_ban, so_luong } = req.body;
+  const hinhAnhMoi = req.file ? req.file.filename : null;
+
+  try {
+    // Lấy hình ảnh cũ (nếu cần)
+    let currentImage = null;
+    if (!hinhAnhMoi) {
+      const [result] = await db.query('SELECT hinh_anh FROM bien_the_san_pham WHERE id = ?', [variantId]);
+      if (result.length === 0) return res.status(404).json({ message: 'Không tìm thấy biến thể sản phẩm' });
+      currentImage = result[0].hinh_anh;
+    }
+
+    // Cập nhật bảng bien_the_san_pham nếu có ảnh mới
+    if (hinhAnhMoi) {
+      await db.query(
+        'UPDATE bien_the_san_pham SET hinh_anh = ? WHERE id = ?',
+        [hinhAnhMoi, variantId]
+      );
+    }
+
+    // Cập nhật bảng bien_the_lo_hang
+    await db.query(
+      'UPDATE bien_the_lo_hang SET gia_ban = ?, so_luong = ? WHERE bien_the_id = ? AND lo_hang_id = ?',
+      [gia_ban, so_luong, variantId, loHangId]
+    );
+
+    res.json({
+      message: 'Cập nhật sản phẩm thành công',
+      hinh_anh: hinhAnhMoi || currentImage
+    });
+  } catch (err) {
+    console.error('Lỗi cập nhật:', err);
+    res.status(500).json({ message: 'Lỗi máy chủ' });
   }
 };

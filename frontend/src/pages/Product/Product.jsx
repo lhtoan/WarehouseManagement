@@ -2,7 +2,7 @@ import './Product.css';
 import { useState, useEffect } from 'react';
 import { fetchProducts } from '../../services/productService';
 import { useNavigate } from 'react-router-dom';
-// import FormUpdate from './FormUpdate';
+import FormUpdate from './FormUpdate';
 
 export default function Product() {
   const [productData, setProductData] = useState([]);
@@ -17,38 +17,49 @@ export default function Product() {
   const itemsPerPage = 10;
 
   // --- Load products ---
-  useEffect(() => {
-    async function loadProducts() {
-      try {
-        const data = await fetchProducts();
-        const mapped = data.flatMap((item) => {
-          return item.bien_the.flatMap((variant) => {
-            return variant.lo_hang.map((lo) => ({
-              maSanPham: item.ma_san_pham,
-              tenSanPham: item.ten_san_pham,
-              hinhAnh: variant.hinh_anh || '',
-              mauSac: variant.mau,
-              size: variant.size,
-              giaBan: Number(lo.gia_ban),
-              soLuong: lo.so_luong,
-              loHang: new Date(lo.ngay_nhap).toLocaleDateString('vi-VN'),
-              variantId: variant.bien_the_id,
-            }));
-          });
+  async function loadProducts() {
+    try {
+      const data = await fetchProducts();
+      const mapped = data.flatMap((item) => {
+        return item.bien_the.flatMap((variant) => {
+          return variant.lo_hang.map((lo) => ({
+            maSanPham: item.ma_san_pham,
+            tenSanPham: item.ten_san_pham,
+            hinhAnh: variant.hinh_anh || '',
+            mauSac: variant.mau,
+            size: variant.size,
+            giaBan: Number(lo.gia_ban),
+            soLuong: lo.so_luong,
+            loHang: new Date(lo.ngay_nhap).toLocaleDateString('vi-VN'),
+            variantId: variant.bien_the_id,
+            loHangId: lo.lo_hang_id,
+          }));
         });
-        setProductData(mapped);
-      } catch (error) {
-        console.error('Lỗi:', error);
-      }
+      });
+      setProductData(mapped);
+    } catch (error) {
+      console.error('Lỗi:', error);
     }
+  }
+  
+  useEffect(() => {
     loadProducts();
   }, []);
+  
 
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = productData.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(productData.length / itemsPerPage);
+
+  const handleUpdate = (updatedProduct) => {
+    console.log("Sản phẩm đã cập nhật:", updatedProduct);
+    loadProducts();
+    setShowUpdatePopup(false);
+    setSelectedProduct(null);
+  };
+  
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -270,6 +281,7 @@ export default function Product() {
             setShowUpdatePopup(false);
             setSelectedProduct(null);
           }}
+          onUpdate={handleUpdate}
         />
       )}
 

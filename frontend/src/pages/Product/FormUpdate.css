@@ -85,7 +85,7 @@
 
 .formupdate-actions .formupdate-btn {
     border: none;
-    width: 100px;
+    width: 150px;
     height: 40px;
     color: white;
 }
@@ -95,7 +95,7 @@
     
 }
 .formupdate-actions .formupdate-btn-save {
-    background-color: #27ae60;
+    background-color: #16C47F;
 }
 
 .formupdate-actions .formupdate-btn-cancel {
@@ -104,4 +104,41 @@
 
 .formupdate-image-preview img {
     padding-top: 20px;
+}
+
+.popup-notification {
+    position: fixed;
+    top: 20px;
+    right: -100px;
+    transform: translateX(-50%);
+    background-color: #16C47F;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    z-index: 9999;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+@keyframes popupFadeInOut {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+
+    10% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+
+    90% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
 }

@@ -62,3 +62,18 @@ export async function addVariant(sanPhamId, variantFormData) {
   const data = await response.json(); // { message, bien_the_id }
   return data;
 }
+
+export async function updateProductVariant(variantId, loHangId, variantFormData) {
+  const response = await fetch(`${API_URL}/products/update/${variantId}/${loHangId}`, {
+    method: 'PUT',
+    body: variantFormData,
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Lỗi khi cập nhật biến thể sản phẩm');
+  }
+
+  const data = await response.json(); // { message, hinh_anh }
+  return data;
+}
