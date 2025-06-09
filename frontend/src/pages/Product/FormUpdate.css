@@ -1,0 +1,107 @@
+.formupdate-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.formupdate-popup {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    width: 600px;
+    max-width: 100%;
+    padding: 30px 40px;
+    position: relative;
+    color: #333;
+}
+
+.formupdate-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    text-align: center;
+    color: #0D92F4;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.formupdate-columns {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.formupdate-column {
+    flex: 1;
+}
+
+.formupdate-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.formupdate-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #555;
+    user-select: none;
+}
+
+.formupdate-group input {
+    padding: 10px 14px;
+    font-size: 15px;
+    border: 1.8px solid #0D92F4;
+    border-radius: 8px;
+    outline-offset: 2px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    font-family: inherit;
+    color: #222;
+}
+
+.formupdate-group input[readonly] {
+    background-color: #f5f5f5;
+    color: #888;
+    cursor: not-allowed;
+}
+
+.formupdate-group input:focus {
+    border-color: #0D92F4;
+    box-shadow: 0 0 6px rgba(0, 87, 255, 0.4);
+}
+
+.formupdate-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
+}
+
+.formupdate-actions .formupdate-btn {
+    border: none;
+    width: 100px;
+    height: 40px;
+    color: white;
+}
+.formupdate-actions {
+    justify-content: center;
+    align-items: center;
+    
+}
+.formupdate-actions .formupdate-btn-save {
+    background-color: #27ae60;
+}
+
+.formupdate-actions .formupdate-btn-cancel {
+    background-color: #F95454;
+}
+
+.formupdate-image-preview img {
+    padding-top: 20px;
+}

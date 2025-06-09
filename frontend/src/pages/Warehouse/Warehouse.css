@@ -1,0 +1,21 @@
+.batch-page h1 {
+    color: #0D92F4;
+    border-bottom: 1px #0D92F4 solid;
+}
+
+.batch-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.batch-table th,
+.batch-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+.batch-table th {
+    background-color: #f5f5f5;
+}

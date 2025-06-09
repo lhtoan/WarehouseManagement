@@ -1,0 +1,128 @@
+.product-page h1 {
+    color: #0D92F4;
+    border-bottom: 1px #0D92F4 solid;
+}
+
+
+.actions {
+    margin-bottom: 10px;
+}
+
+.btn {
+    margin-right: 10px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+.btn-add {
+    background-color: #0D92F4;
+    border: none;
+    border-radius: 5px;
+    padding: 15px;
+    color: white;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.uil-plus-circle {
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.product-table th,
+.product-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    height: 100px;
+}
+
+.product-table img {
+    max-height: 100px;
+    max-width: 100px;
+}
+
+.product-table tr {
+    min-height: 200px;
+}
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-content {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    width: 400px;
+    position: relative;
+}
+
+.product-form .form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-form .form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.product-form input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.btn-save {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-cancel {
+    background-color: #dc3545;
+    color: white;
+}
+
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.pagination button {
+    margin: 0 4px;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    background-color: white;
+    cursor: pointer;
+}
+
+.pagination button.active {
+    background-color: #0D92F4;
+    color: white;
+    border-color: #0D92F4;
+}
+
+.pagination button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
