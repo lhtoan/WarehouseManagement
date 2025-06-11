@@ -27,7 +27,44 @@ export async function fetchSizes() {
   return data;
 }
 
-// Tạo sản phẩm
+// Thêm size mới
+export async function createSize(ten_size) {
+  const response = await fetch(`${API_URL}/attributes/size`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ten_size }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Lỗi khi thêm size');
+  }
+
+  const data = await response.json(); // { message, id }
+  return data;
+}
+
+// Thêm màu mới
+export async function createColor(ten_mau) {
+  const response = await fetch(`${API_URL}/attributes/color`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ten_mau }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Lỗi khi thêm màu');
+  }
+
+  const data = await response.json(); // { message, id }
+  return data;
+}
+
 // Tạo sản phẩm
 export async function createProduct(productData) {
   const response = await fetch(`${API_URL}/products/add`, {
@@ -75,5 +112,15 @@ export async function updateProductVariant(variantId, loHangId, variantFormData)
   }
 
   const data = await response.json(); // { message, hinh_anh }
+  return data;
+}
+
+
+export async function fetchProductsWithVariants() {
+  const response = await fetch(`${API_URL}/productsdetail`);
+  if (!response.ok) {
+    throw new Error('Lỗi khi lấy chi tiết sản phẩm và biến thể');
+  }
+  const data = await response.json();
   return data;
 }

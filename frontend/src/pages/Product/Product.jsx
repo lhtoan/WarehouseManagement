@@ -6,7 +6,7 @@ import FormUpdate from './FormUpdate';
 
 export default function Product() {
   const [productData, setProductData] = useState([]);
-  const [showAddPopup, setShowAddPopup] = useState(false);
+  // const [showAddPopup, setShowAddPopup] = useState(false);
   const [showUpdatePopup, setShowUpdatePopup] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -53,8 +53,7 @@ export default function Product() {
   const currentProducts = productData.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(productData.length / itemsPerPage);
 
-  const handleUpdate = (updatedProduct) => {
-    console.log("Sản phẩm đã cập nhật:", updatedProduct);
+  const handleUpdate = () => {
     loadProducts();
     setShowUpdatePopup(false);
     setSelectedProduct(null);
@@ -66,132 +65,6 @@ export default function Product() {
       setCurrentPage(page);
     }
   };
-
-  // --- Form state for adding product and variants ---
-  const [newProduct, setNewProduct] = useState({
-    maSanPham: '',
-    tenSanPham: '',
-    bienThe: [
-      {
-        mauSac: '',
-        size: '',
-        hinhAnh: '',
-        loHang: '',
-        giaBan: '',
-        soLuong: '',
-      },
-    ],
-  });
-
-  // Handle product info change
-  const handleProductChange = (e) => {
-    const { name, value } = e.target;
-    setNewProduct((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // Handle variant change by index
-  const handleVariantChange = (index, e) => {
-    const { name, value } = e.target;
-    setNewProduct((prev) => {
-      const updatedVariants = [...prev.bienThe];
-      updatedVariants[index] = {
-        ...updatedVariants[index],
-        [name]: value,
-      };
-      return {
-        ...prev,
-        bienThe: updatedVariants,
-      };
-    });
-  };
-
-  // Add a new variant
-  const addVariant = () => {
-    setNewProduct((prev) => ({
-      ...prev,
-      bienThe: [
-        ...prev.bienThe,
-        { mauSac: '', size: '', hinhAnh: '', loHang: '', giaBan: '', soLuong: '' },
-      ],
-    }));
-  };
-
-  // Remove variant by index
-  const removeVariant = (index) => {
-    setNewProduct((prev) => ({
-      ...prev,
-      bienThe: prev.bienThe.filter((_, i) => i !== index),
-    }));
-  };
-
-  // Handle form submit (add product)
-  const handleAddSubmit = (e) => {
-    e.preventDefault();
-
-    // Validate required fields
-    if (!newProduct.maSanPham || !newProduct.tenSanPham) {
-      alert('Vui lòng nhập mã và tên sản phẩm');
-      return;
-    }
-
-    for (const variant of newProduct.bienThe) {
-      if (
-        !variant.mauSac ||
-        !variant.size ||
-        !variant.loHang ||
-        !variant.giaBan ||
-        !variant.soLuong
-      ) {
-        alert('Vui lòng nhập đầy đủ thông tin biến thể');
-        return;
-      }
-    }
-
-    // Chuẩn bị dữ liệu gửi lên API
-    const productToSave = {
-      ma_san_pham: newProduct.maSanPham,
-      ten_san_pham: newProduct.tenSanPham,
-      bien_the: newProduct.bienThe.map((v) => ({
-        mau: v.mauSac,
-        size: v.size,
-        hinh_anh: v.hinhAnh,
-        lo_hang: [
-          {
-            ngay_nhap: v.loHang,
-            gia_ban: Number(v.giaBan),
-            so_luong: Number(v.soLuong),
-          },
-        ],
-      })),
-    };
-
-    console.log('Dữ liệu sản phẩm mới:', productToSave);
-
-    // TODO: gọi API thêm sản phẩm ở đây
-
-    // Sau khi thêm thành công, reset form và đóng popup
-    setNewProduct({
-      maSanPham: '',
-      tenSanPham: '',
-      bienThe: [
-        {
-          mauSac: '',
-          size: '',
-          hinhAnh: '',
-          loHang: '',
-          giaBan: '',
-          soLuong: '',
-        },
-      ],
-    });
-    setShowAddPopup(false);
-
-    // Reload lại danh sách sản phẩm nếu cần
-  };
-
   return (
     <div className="product-page">
       <h1>QUẢN LÝ SẢN PHẨM</h1>
@@ -283,145 +156,6 @@ export default function Product() {
           }}
           onUpdate={handleUpdate}
         />
-      )}
-
-      {/* Popup thêm sản phẩm */}
-      {showAddPopup && (
-        <div className="popup-overlay">
-          <div className="popup-content">
-            <h2>Thêm sản phẩm mới</h2>
-            <form className="product-form" onSubmit={handleAddSubmit}>
-              <div className="form-group">
-                <label>Mã sản phẩm *</label>
-                <input
-                  type="text"
-                  name="maSanPham"
-                  value={newProduct.maSanPham}
-                  onChange={handleProductChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Tên sản phẩm *</label>
-                <input
-                  type="text"
-                  name="tenSanPham"
-                  value={newProduct.tenSanPham}
-                  onChange={handleProductChange}
-                  required
-                />
-              </div>
-
-              <h3>Biến thể sản phẩm</h3>
-              {newProduct.bienThe.map((variant, index) => (
-                <div key={index} className="variant-group">
-                  <div className="form-group">
-                    <label>Màu sắc *</label>
-                    <input
-                      type="text"
-                      name="mauSac"
-                      value={variant.mauSac}
-                      onChange={(e) => handleVariantChange(index, e)}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Size *</label>
-                    <input
-                      type="text"
-                      name="size"
-                      value={variant.size}
-                      onChange={(e) => handleVariantChange(index, e)}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Hình ảnh (tên file)</label>
-                    <input
-                      type="text"
-                      name="hinhAnh"
-                      value={variant.hinhAnh}
-                      onChange={(e) => handleVariantChange(index, e)}
-                      placeholder="vd: image.jpg"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Ngày nhập *</label>
-                    <input
-                      type="date"
-                      name="loHang"
-                      value={variant.loHang}
-                      onChange={(e) => handleVariantChange(index, e)}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Giá bán *</label>
-                    <input
-                      type="number"
-                      name="giaBan"
-                      value={variant.giaBan}
-                      onChange={(e) => handleVariantChange(index, e)}
-                      min="0"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Số lượng *</label>
-                    <input
-                      type="number"
-                      name="soLuong"
-                      value={variant.soLuong}
-                      onChange={(e) => handleVariantChange(index, e)}
-                      min="0"
-                      required
-                    />
-                  </div>
-
-                  {newProduct.bienThe.length > 1 && (
-                    <button
-                      type="button"
-                      className="btn btn-delete-variant"
-                      onClick={() => removeVariant(index)}
-                    >
-                      Xóa biến thể
-                    </button>
-                  )}
-                  <hr />
-                </div>
-              ))}
-
-              <button
-                type="button"
-                className="btn btn-add-variant"
-                onClick={addVariant}
-              >
-                Thêm biến thể mới
-              </button>
-
-              <div className="form-actions">
-                <button type="submit" className="btn btn-save">
-                  Lưu sản phẩm
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-cancel"
-                  onClick={() => setShowAddPopup(false)}
-                >
-                  Hủy
-                </button>
-              </div>
-            </form>
-
-            <button
-              className="btn btn-close"
-              onClick={() => setShowAddPopup(false)}
-              title="Đóng"
-            >
-              Đóng
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );

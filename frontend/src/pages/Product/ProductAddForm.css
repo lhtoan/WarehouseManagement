@@ -176,3 +176,11 @@ button.btn-success:hover {
         transform: translate(-50%, -40%);
     }
 }
+
+.popup-success {
+    background-color: #16C47F;
+}
+
+.popup-error {
+    background-color: #F95454;
+}

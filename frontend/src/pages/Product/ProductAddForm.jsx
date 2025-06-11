@@ -29,6 +29,7 @@ export default function ProductForm() {
   const [showPopup, setShowPopup] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [popupType, setPopupType] = useState('success');
 
   useEffect(() => {
     async function loadData() {
@@ -59,7 +60,7 @@ export default function ProductForm() {
     return `${day}/${month}/${year}`;
   };
 
-  const handleCreateProduct = async (e) => {
+  const handleCreateProduct = (e) => {
     e.preventDefault();
     if (productInfo.ma_san_pham && productInfo.ten_san_pham) {
       setShowVariantForm(true);
@@ -97,11 +98,9 @@ export default function ProductForm() {
         ten_san_pham: productInfo.ten_san_pham,
       };
 
-      // Tạo sản phẩm
       const result = await createProduct(productData);
       const sanPhamId = result.san_pham_id;
 
-      // Tạo các biến thể
       for (const variant of variants) {
         const formData = new FormData();
         formData.append('mau_sac', variant.mauSac);
@@ -112,14 +111,13 @@ export default function ProductForm() {
         if (variant.hinhAnh) {
           formData.append('hinh_anh', variant.hinhAnh);
         }
-
         await addVariant(sanPhamId, formData);
       }
 
-      // Reset form
       setProductInfo({ ma_san_pham: '', ten_san_pham: '' });
       setVariants([{ mauSac: '', size: '', giaBan: '', soLuong: '', batchId: '', hinhAnh: null, preview: '' }]);
       setShowVariantForm(false);
+      setPopupType('success');
       setPopupMessage('Thêm sản phẩm thành công!');
       setShowPopup(true);
 
@@ -129,47 +127,54 @@ export default function ProductForm() {
       }, 500);
 
     } catch (err) {
-      setError(err.message || 'Lỗi khi tạo sản phẩm hoặc biến thể');
+      if (err.response?.data?.message?.includes("trùng")) {
+        setPopupMessage('Mã sản phẩm đã tồn tại!');
+        setPopupType('error');
+      } else {
+        setPopupMessage(err.message || 'Lỗi khi tạo sản phẩm hoặc biến thể');
+        setPopupType('error');
+      }
+      setShowPopup(true);
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) return <p>Đang tải...</p>;
-  if (error) return <p style={{ color: 'red' }}>Lỗi: {error}</p>;
+  if (error) return <p>Lỗi: {error}</p>;
 
   return (
     <form className="product-form" onSubmit={handleSubmitAll}>
-      {!showVariantForm && (
-        <div className="product-basic">
-          <h2>Thông tin sản phẩm</h2>
-          <label>
-            Mã sản phẩm:
-            <input
-              type="text"
-              value={productInfo.ma_san_pham}
-              onChange={(e) =>
-                setProductInfo({ ...productInfo, ma_san_pham: e.target.value })
-              }
-              required
-            />
-          </label>
-          <label>
-            Tên sản phẩm:
-            <input
-              type="text"
-              value={productInfo.ten_san_pham}
-              onChange={(e) =>
-                setProductInfo({ ...productInfo, ten_san_pham: e.target.value })
-              }
-              required
-            />
-          </label>
+      <div className="product-basic">
+        <h2>Thông tin sản phẩm</h2>
+        <label>
+          Mã sản phẩm:
+          <input
+            type="text"
+            value={productInfo.ma_san_pham}
+            onChange={(e) =>
+              setProductInfo({ ...productInfo, ma_san_pham: e.target.value })
+            }
+            required
+          />
+        </label>
+        <label>
+          Tên sản phẩm:
+          <input
+            type="text"
+            value={productInfo.ten_san_pham}
+            onChange={(e) =>
+              setProductInfo({ ...productInfo, ten_san_pham: e.target.value })
+            }
+            required
+          />
+        </label>
+        {!showVariantForm && (
           <button onClick={handleCreateProduct} className="btn btn-primary">
             Tạo sản phẩm
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {showVariantForm && (
         <div className="variant-section">
@@ -278,7 +283,12 @@ export default function ProductForm() {
           </div>
         </div>
       )}
-      {showPopup && <div className="popup-notification">{popupMessage}</div>}
+
+      {showPopup && (
+        <div className={`popup-notification ${popupType === 'error' ? 'popup-error' : 'popup-success'}`}>
+          {popupMessage}
+        </div>
+      )}
     </form>
   );
 }

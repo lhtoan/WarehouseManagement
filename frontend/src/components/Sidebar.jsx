@@ -32,7 +32,7 @@ export default function Sidebar() {
         </li>
         <li>
           <NavLink
-            to="/orders"
+            to="/order"
             className={({ isActive }) => isActive ? 'nav-active' : ''}
           >
             Đơn hàng

@@ -83,7 +83,82 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-  
+exports.getAllProductsWithVariants = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        sp.id AS san_pham_id,
+        sp.ma_san_pham,
+        sp.ten_san_pham,
+        sz.ten_size,
+        m.ten_mau,
+        btsp.hinh_anh,
+        btlh.gia_ban
+      FROM san_pham sp
+      JOIN bien_the_san_pham btsp ON sp.id = btsp.san_pham_id
+      JOIN size sz ON btsp.size_id = sz.id
+      JOIN mau m ON btsp.mau_id = m.id
+      JOIN bien_the_lo_hang btlh ON btsp.id = btlh.bien_the_id
+    `);
+
+    const result = {};
+
+    rows.forEach(row => {
+      const id = row.san_pham_id;
+      if (!result[id]) {
+        result[id] = {
+          id,
+          ma_san_pham: row.ma_san_pham,
+          ten_san_pham: row.ten_san_pham,
+          variants: []
+        };
+      }
+
+      result[id].variants.push({
+        size: row.ten_size,
+        color: row.ten_mau,
+        hinh_anh: row.hinh_anh,
+        gia_ban: row.gia_ban
+      });
+    });
+
+    res.json(Object.values(result));
+  } catch (error) {
+    console.error("Lỗi truy vấn dữ liệu:", error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+// POST /products - Tạo sản phẩm mới
+exports.createProduct = async (req, res) => {
+  const connection = await db.getConnection();
+  try {
+    const { ma_san_pham, ten_san_pham } = req.body;
+
+    const [existing] = await connection.execute(
+      'SELECT ma_san_pham FROM san_pham WHERE ma_san_pham = ?',
+      [ma_san_pham]
+    );
+    if (existing.length > 0) {
+      return res.status(400).json({ error: 'Mã sản phẩm đã tồn tại' });
+    }
+
+    const [result] = await connection.execute(
+      'INSERT INTO san_pham (ma_san_pham, ten_san_pham) VALUES (?, ?)',
+      [ma_san_pham, ten_san_pham]
+    );
+
+    res.status(201).json({
+      message: 'Tạo sản phẩm thành công',
+      san_pham_id: result.insertId
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Lỗi server khi tạo sản phẩm' });
+  } finally {
+    connection.release();
+  }
+};
 
 // // POST /products
 // // controllers/product.controller.js

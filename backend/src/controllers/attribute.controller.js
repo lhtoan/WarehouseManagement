@@ -34,7 +34,48 @@ const getColorValues = async (req, res) => {
   }
 };
 
+const createSize = async (req, res) => {
+  const { ten_size } = req.body;
+
+  if (!ten_size || ten_size.trim() === '') {
+    return res.status(400).json({ message: 'Tên size không được bỏ trống' });
+  }
+
+  try {
+    const [result] = await db.query(
+      `INSERT INTO size (ten_size) VALUES (?)`,
+      [ten_size.trim()]
+    );
+    res.status(201).json({ message: 'Thêm size thành công', id: result.insertId });
+  } catch (err) {
+    console.error('Lỗi khi thêm size:', err);
+    res.status(500).json({ message: 'Lỗi khi thêm size', error: err });
+  }
+};
+
+// Thêm mới màu
+const createColor = async (req, res) => {
+  const { ten_mau } = req.body;
+
+  if (!ten_mau || ten_mau.trim() === '') {
+    return res.status(400).json({ message: 'Tên màu không được bỏ trống' });
+  }
+
+  try {
+    const [result] = await db.query(
+      `INSERT INTO mau (ten_mau) VALUES (?)`,
+      [ten_mau.trim()]
+    );
+    res.status(201).json({ message: 'Thêm màu thành công', id: result.insertId });
+  } catch (err) {
+    console.error('Lỗi khi thêm màu:', err);
+    res.status(500).json({ message: 'Lỗi khi thêm màu', error: err });
+  }
+};
+
 module.exports = {
   getSizeValues,
-  getColorValues
+  getColorValues,
+  createSize,
+  createColor
 };

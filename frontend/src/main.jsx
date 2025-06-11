@@ -8,6 +8,7 @@ import Home from './pages/Home/Home';
 import Product from './pages/Product/Product';
 import ProductAddForm from './pages/Product/ProductAddForm';
 import Warehouse from './pages/Warehouse/Warehouse';
+import Order from './pages/Order/Order';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -20,6 +21,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="products" element={<Product />} />
           <Route path="products/add" element={<ProductAddForm />} />
           <Route path="warehouse" element={<Warehouse />} />
+          <Route path="order" element={<Order />} />
         </Route>
       </Routes>
     </BrowserRouter>

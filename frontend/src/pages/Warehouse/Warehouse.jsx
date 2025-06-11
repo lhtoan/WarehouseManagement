@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { fetchBatches, addBatch } from '../../services/batchesService';
+import { createSize, createColor, fetchSizes, fetchColors } from '../../services/productService';
+
+
 import './Warehouse.css';
 
 // Hàm lấy ngày hiện tại ở định dạng 'YYYY-MM-DD'
@@ -8,10 +11,15 @@ function getTodayDateString() {
   return today.toISOString().split('T')[0];
 }
 
-export default function Home() {
+export default function WareHouse() {
   const [batches, setBatches] = useState([]);
   const [error, setError] = useState('');
   const [showPopup, setShowPopup] = useState(false);
+  const [newSize, setNewSize] = useState('');
+  const [newColor, setNewColor] = useState('');
+  const [sizes, setSizes] = useState([]);
+  const [colors, setColors] = useState([]);
+
 
   // Form state
   const [maLo, setMaLo] = useState('');
@@ -27,9 +35,22 @@ export default function Home() {
         console.error(err);
       }
     }
-
+  
+    async function loadSizesAndColors() {
+      try {
+        const sizeData = await fetchSizes();
+        const colorData = await fetchColors();
+        setSizes(sizeData);
+        setColors(colorData);
+      } catch (err) {
+        console.error('Lỗi khi tải size/màu:', err);
+      }
+    }
+  
     loadBatches();
+    loadSizesAndColors();
   }, []);
+  
 
   const handleAddBatch = async (e) => {
     e.preventDefault();
@@ -48,6 +69,32 @@ export default function Home() {
       setError(err.message || 'Lỗi khi thêm lô hàng');
     }
   };
+
+  const handleAddSize = async () => {
+    try {
+      await createSize(newSize);
+      alert('Thêm size thành công');
+      setNewSize('');
+      const updatedSizes = await fetchSizes(); // cập nhật lại bảng
+      setSizes(updatedSizes);
+    } catch (err) {
+      alert(err.message || 'Lỗi khi thêm size');
+    }
+  };
+  
+  const handleAddColor = async () => {
+    try {
+      await createColor(newColor);
+      alert('Thêm màu thành công');
+      setNewColor('');
+      const updatedColors = await fetchColors(); // cập nhật lại bảng
+      setColors(updatedColors);
+    } catch (err) {
+      alert(err.message || 'Lỗi khi thêm màu');
+    }
+  };
+  
+  
 
   return (
     <div className="batch-page">
@@ -75,6 +122,71 @@ export default function Home() {
           ))}
         </tbody>
       </table>
+      
+      <div className="add-attribute-section">
+        <h2>Thêm Size</h2>
+        <div className="form-group-warehouse">
+          <label>Tên size</label>
+          <input
+            type="text"
+            value={newSize}
+            onChange={(e) => setNewSize(e.target.value)}
+          />
+          <button className="btn btn-save" onClick={handleAddSize}>Thêm Size</button>
+        </div>
+        
+        <h2>Danh sách Size</h2>
+        <table className="batch-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tên size</th>
+            </tr>
+          </thead>
+          <tbody>
+          {sizes.map((size) => (
+            <tr key={size.gia_tri_id}>
+              <td>{size.gia_tri_id}</td>
+              <td>{size.gia_tri}</td>
+            </tr>
+          ))}
+
+
+          </tbody>
+        </table>
+
+        <h2>Thêm Màu</h2>
+        <div className="form-group-warehouse">
+          <label>Tên màu</label>
+          <input
+            type="text"
+            value={newColor}
+            onChange={(e) => setNewColor(e.target.value)}
+          />
+          <button className="btn btn-save" onClick={handleAddColor}>Thêm Màu</button>
+        </div>
+        
+        <h2>Danh sách Màu</h2>
+        <table className="batch-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tên màu</th>
+            </tr>
+          </thead>
+          <tbody>
+          {colors.map((color) => (
+            <tr key={color.gia_tri_id}>
+              <td>{color.gia_tri_id}</td>
+              <td>{color.gia_tri}</td>
+            </tr>
+          ))}
+
+          </tbody>
+        </table>
+
+      </div>
+
 
       {/* Popup thêm lô hàng */}
       {showPopup && (
@@ -82,7 +194,7 @@ export default function Home() {
           <div className="popup-content">
             <h2>Thêm lô hàng mới</h2>
             <form onSubmit={handleAddBatch}>
-              <div className="form-group">
+              <div className="form-group-warehouse">
                 <label>Mã lô</label>
                 <input
                   type="text"
@@ -91,7 +203,7 @@ export default function Home() {
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className="form-group-warehouse">
                 <label>Ngày nhập</label>
                 <input
                   type="date"
@@ -101,9 +213,9 @@ export default function Home() {
                 />
               </div>
 
-              <div className="form-actions">
-                <button type="submit" className="btn btn-save">Lưu</button>
+              <div className="form-actions-warehouse">
                 <button type="button" className="btn btn-cancel" onClick={() => setShowPopup(false)}>Hủy</button>
+                <button type="submit" className="btn btn-save">Lưu</button>
               </div>
             </form>
 
