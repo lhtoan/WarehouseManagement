@@ -131,6 +131,7 @@ export default function WareHouse() {
             type="text"
             value={newSize}
             onChange={(e) => setNewSize(e.target.value)}
+            placeholder='Size'
           />
           <button className="btn btn-save" onClick={handleAddSize}>Thêm Size</button>
         </div>
@@ -162,6 +163,7 @@ export default function WareHouse() {
             type="text"
             value={newColor}
             onChange={(e) => setNewColor(e.target.value)}
+            placeholder='Màu'
           />
           <button className="btn btn-save" onClick={handleAddColor}>Thêm Màu</button>
         </div>

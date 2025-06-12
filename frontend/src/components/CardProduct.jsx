@@ -63,7 +63,7 @@ export default function CardProduct({ product, onSelect }) {
 
         {selectedVariant && (
           <div className="price">
-            Giá: {selectedVariant.gia_ban.toLocaleString()} VND
+            Giá: {Number(selectedVariant.gia_ban).toLocaleString("vi-VN")} VNĐ
           </div>
         )}
 

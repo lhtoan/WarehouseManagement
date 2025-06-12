@@ -6,9 +6,13 @@ import FormUpdate from './FormUpdate';
 
 export default function Product() {
   const [productData, setProductData] = useState([]);
-  // const [showAddPopup, setShowAddPopup] = useState(false);
-  const [showUpdatePopup, setShowUpdatePopup] = useState(false);
+  const [filteredData, setFilteredData] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showUpdatePopup, setShowUpdatePopup] = useState(false);
+
+  const [searchText, setSearchText] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
 
   const navigate = useNavigate();
 
@@ -37,37 +41,101 @@ export default function Product() {
         });
       });
       setProductData(mapped);
+      setFilteredData(mapped);
     } catch (error) {
       console.error('Lỗi:', error);
     }
   }
-  
+
   useEffect(() => {
     loadProducts();
   }, []);
-  
+
+  // Handle search and filter
+  useEffect(() => {
+    let filtered = productData;
+
+    if (searchText) {
+      filtered = filtered.filter((item) =>
+        item.tenSanPham.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+
+    if (selectedSize) {
+      filtered = filtered.filter((item) => item.size === selectedSize);
+    }
+
+    if (selectedColor) {
+      filtered = filtered.filter((item) => item.mauSac === selectedColor);
+    }
+
+    setFilteredData(filtered);
+    setCurrentPage(1); // reset page on filter
+  }, [searchText, selectedSize, selectedColor, productData]);
 
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = productData.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(productData.length / itemsPerPage);
+  const currentProducts = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const handleUpdate = () => {
     loadProducts();
     setShowUpdatePopup(false);
     setSelectedProduct(null);
   };
-  
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
+
+  // Get unique sizes and colors for filter buttons
+  const uniqueSizes = [...new Set(productData.map((item) => item.size))];
+  const uniqueColors = [...new Set(productData.map((item) => item.mauSac))];
+
   return (
     <div className="product-page">
       <h1>QUẢN LÝ SẢN PHẨM</h1>
+
+      {/* Search and Filter */}
+      <div className="search-filter-product">
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo tên sản phẩm..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+
+        <div className="filter-buttons">
+          <div className="filter-group">
+            <span>Size: </span>
+            {uniqueSizes.map((size) => (
+              <button
+                key={size}
+                className={selectedSize === size ? 'active' : ''}
+                onClick={() => setSelectedSize(selectedSize === size ? '' : size)}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+
+          <div className="filter-group">
+            <span>Màu: </span>
+            {uniqueColors.map((color) => (
+              <button
+                key={color}
+                className={selectedColor === color ? 'active' : ''}
+                onClick={() => setSelectedColor(selectedColor === color ? '' : color)}
+              >
+                {color}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       <div className="actions">
         <button className='btn btn-add' onClick={() => navigate('/products/add')}>
@@ -99,7 +167,7 @@ export default function Product() {
               <td>{sp.tenSanPham}</td>
               <td>{sp.mauSac}</td>
               <td>{sp.size}</td>
-              <td>{sp.giaBan.toLocaleString()} đ</td>
+              <td>{sp.giaBan.toLocaleString()} VNĐ</td>
               <td>{sp.soLuong}</td>
               <td>
                 <img
@@ -125,7 +193,7 @@ export default function Product() {
         </tbody>
       </table>
 
-      {/* Pagination controls */}
+      {/* Pagination */}
       <div className="pagination">
         <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
           Trang trước
@@ -147,6 +215,7 @@ export default function Product() {
         </button>
       </div>
 
+      {/* Popup cập nhật */}
       {showUpdatePopup && selectedProduct && (
         <FormUpdate
           product={selectedProduct}

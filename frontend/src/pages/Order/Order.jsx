@@ -1,4 +1,3 @@
-// pages/Order.jsx
 import React, { useEffect, useState } from "react";
 import CardProduct from "../../components/CardProduct";
 import { fetchProductsWithVariants } from "../../services/productService";
@@ -20,44 +19,64 @@ export default function Order() {
   }, []);
 
   const handleSelect = (variantInfo) => {
-    const exists = selectedVariants.some(
-      (item) =>
-        item.productId === variantInfo.productId &&
-        item.size === variantInfo.size &&
-        item.color === variantInfo.color
-    );
-    if (!exists) {
-      setSelectedVariants((prev) => [...prev, variantInfo]);
-    }
+    setSelectedVariants((prev) => {
+      const existingIndex = prev.findIndex(
+        (item) =>
+          item.productId === variantInfo.productId &&
+          item.size === variantInfo.size &&
+          item.color === variantInfo.color
+      );
+
+      if (existingIndex !== -1) {
+        const updated = [...prev];
+        updated[existingIndex].quantity += 1;
+        return updated;
+      } else {
+        return [...prev, { ...variantInfo, quantity: 1 }];
+      }
+    });
   };
 
   const handleRemove = (index) => {
     setSelectedVariants((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Tạo danh sách unique size và màu
+  const updateQuantity = (index, newQuantity) => {
+    if (newQuantity <= 0) {
+      handleRemove(index);
+    } else {
+      setSelectedVariants((prev) => {
+        const updated = [...prev];
+        updated[index].quantity = newQuantity;
+        return updated;
+      });
+    }
+  };
+
   const sizes = [...new Set(products.flatMap((p) => p.variants.map((v) => v.size)))];
   const colors = [...new Set(products.flatMap((p) => p.variants.map((v) => v.color)))];
 
-  // Lọc sản phẩm theo tên, size, màu
   const filteredProducts = products.filter((product) => {
     const matchName = product.ten_san_pham.toLowerCase().includes(searchTerm.toLowerCase());
-
     const matchVariant = product.variants.some((variant) => {
       const matchSize = selectedSize ? variant.size === selectedSize : true;
       const matchColor = selectedColor ? variant.color === selectedColor : true;
       return matchSize && matchColor;
     });
-
     return matchName && matchVariant;
   });
+
+  const totalAmount = selectedVariants.reduce(
+    (sum, item) => sum + item.gia_ban * item.quantity,
+    0
+  );
 
   return (
     <div className="order-container">
       <div className="order-product-section">
         <h1>Tạo đơn hàng</h1>
 
-        {/* Thanh tìm kiếm và lọc */}
+        {/* Tìm kiếm & lọc */}
         <div className="order-filter">
           <input
             type="text"
@@ -99,39 +118,50 @@ export default function Order() {
         ) : (
           <div className="order-product-grid">
             {filteredProducts.map((product) => (
-              <CardProduct
-                key={product.id}
-                product={product}
-                onSelect={handleSelect}
-              />
+              <CardProduct key={product.id} product={product} onSelect={handleSelect} />
             ))}
           </div>
         )}
       </div>
 
-      {/* Sidebar sản phẩm đã chọn */}
+      {/* Sidebar đã chọn */}
       <div className="order-sidebar">
         <h2>Đã chọn ({selectedVariants.length})</h2>
         {selectedVariants.length === 0 ? (
           <p>Chưa có sản phẩm nào</p>
         ) : (
-          <ul>
-            {selectedVariants.map((item, index) => (
-              <li key={index} className="order-selected-item">
-                <img
-                  src={`http://localhost:3000/images/${item.hinh_anh}`}
-                  alt={item.tenSanPham}
-                  className="order-sidebar-img"
-                />
-                <div className="order-sidebar-info">
-                  <p>{item.tenSanPham}</p>
-                  <p>Size: {item.size} - Màu: {item.color}</p>
-                  <p>Giá: {item.gia_ban.toLocaleString()} VND</p>
-                  <button onClick={() => handleRemove(index)}>Xoá</button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="order-selected-list">
+              {selectedVariants.map((item, index) => (
+                <li key={index} className="order-selected-item">
+                  <img
+                    src={`http://localhost:3000/images/${item.hinh_anh}`}
+                    alt={item.tenSanPham}
+                    className="order-sidebar-img"
+                  />
+                  <div className="order-sidebar-info">
+                    <p>{item.tenSanPham}</p>
+                    <p>Size: {item.size} - Màu: {item.color}</p>
+                    <p>Giá: {Number(item.gia_ban).toLocaleString("vi-VN")} VNĐ</p>
+
+                    <div className="quantity-control">
+                      <button onClick={() => updateQuantity(index, item.quantity - 1)}>-</button>
+                      <span>{item.quantity}</span>
+                      <button onClick={() => updateQuantity(index, item.quantity + 1)}>+</button>
+                    </div>
+
+                    <button onClick={() => handleRemove(index)}>Xoá</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {/* Tổng tiền luôn ở cuối */}
+            <div className="order-total highlight">
+              <strong>Tổng tiền:</strong>{" "}
+              {Number(totalAmount).toLocaleString("vi-VN")} VNĐ
+            </div>
+          </>
         )}
       </div>
     </div>
