@@ -93,7 +93,8 @@ exports.getAllProductsWithVariants = async (req, res) => {
         sz.ten_size,
         m.ten_mau,
         btsp.hinh_anh,
-        btlh.gia_ban
+        btlh.gia_ban,
+        btsp.id AS bien_the_id
       FROM san_pham sp
       JOIN bien_the_san_pham btsp ON sp.id = btsp.san_pham_id
       JOIN size sz ON btsp.size_id = sz.id
@@ -115,6 +116,7 @@ exports.getAllProductsWithVariants = async (req, res) => {
       }
 
       result[id].variants.push({
+        bien_the_id: row.bien_the_id,
         size: row.ten_size,
         color: row.ten_mau,
         hinh_anh: row.hinh_anh,
@@ -128,6 +130,7 @@ exports.getAllProductsWithVariants = async (req, res) => {
     res.status(500).json({ message: "Lỗi server" });
   }
 };
+
 
 // POST /products - Tạo sản phẩm mới
 exports.createProduct = async (req, res) => {

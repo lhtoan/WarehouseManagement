@@ -1,7 +1,7 @@
 import "./CardProduct.css";
 import React, { useState, useEffect } from "react";
 
-export default function CardProduct({ product, onSelect }) {
+export default function CardProduct({ product, onSelect, resetSignal  }) {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -16,6 +16,10 @@ export default function CardProduct({ product, onSelect }) {
     setSelectedVariant(variant || null);
   }, [selectedSize, selectedColor, product.variants]);
 
+  useEffect(() => {
+    handleReset();
+  }, [resetSignal]);
+
   const handleReset = () => {
     setSelectedSize("");
     setSelectedColor("");
@@ -26,6 +30,7 @@ export default function CardProduct({ product, onSelect }) {
     <div className="card-product">
       <img
         src={`http://localhost:3000/images/${selectedVariant?.hinh_anh || product.variants[0].hinh_anh}`}
+        onError={(e) => (e.target.src = "../../../public/picture.png")}
         alt="Ảnh sản phẩm"
       />
       <div className="card-body">
@@ -71,6 +76,7 @@ export default function CardProduct({ product, onSelect }) {
           className="select-button"
           onClick={() =>
             onSelect({
+              bien_the_id: selectedVariant?.bien_the_id,  // thêm dòng này
               productId: product.id,
               tenSanPham: product.ten_san_pham,
               size: selectedSize,
@@ -83,6 +89,7 @@ export default function CardProduct({ product, onSelect }) {
         >
           {selectedVariant ? "Chọn biến thể" : "Chọn size và màu"}
         </button>
+
 
         {(selectedSize || selectedColor) && (
           <button className="reset-button" onClick={handleReset}>

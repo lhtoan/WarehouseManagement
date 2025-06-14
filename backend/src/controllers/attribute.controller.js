@@ -73,9 +73,22 @@ const createColor = async (req, res) => {
   }
 };
 
+const getAllShippingUnits = async (req, res) => {
+  const sql = 'SELECT * FROM don_vi_van_chuyen';
+  try {
+    const [results] = await db.query(sql);
+    res.json(results);
+  } catch (err) {
+    console.error('Lỗi truy vấn:', err);
+    res.status(500).json({ error: 'Lỗi máy chủ' });
+  }
+};
+
+
 module.exports = {
   getSizeValues,
   getColorValues,
   createSize,
-  createColor
+  createColor,
+  getAllShippingUnits
 };
