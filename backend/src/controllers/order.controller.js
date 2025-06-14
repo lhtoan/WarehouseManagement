@@ -178,3 +178,60 @@ exports.getAllOrdersWithDetails = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: err.message });
   }
 };
+
+exports.updateOrderStatus = async (req, res) => {
+  const { id } = req.params; // id ở đây là ma_don_hang
+  const { trang_thai, nguoi_cap_nhat } = req.body;
+
+  try {
+    // Thêm bản ghi mới vào bảng lịch sử trạng thái
+    await db.query(
+      `INSERT INTO lich_su_trang_thai_don_hang (ma_don_hang, trang_thai, nguoi_cap_nhat)
+       VALUES (?, ?, ?)`,
+      [id, trang_thai, nguoi_cap_nhat]
+    );
+
+    res.status(200).json({ message: "Cập nhật trạng thái đơn hàng thành công" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi khi cập nhật trạng thái đơn hàng" });
+  }
+};
+
+exports.getOrderStatusHistory = async (req, res) => {
+  const { ma_hoa_don } = req.params;
+
+  const sql = `
+    SELECT 
+        d.ma_hoa_don,
+        l.trang_thai,
+        l.thoi_gian,
+        u.email AS nguoi_cap_nhat
+    FROM 
+        don_hang d
+    JOIN 
+        lich_su_trang_thai_don_hang l ON d.ma_don_hang = l.ma_don_hang
+    LEFT JOIN 
+        nguoi_dung u ON l.nguoi_cap_nhat = u.id
+    WHERE 
+        d.ma_hoa_don = ?
+    ORDER BY 
+        l.thoi_gian ASC
+  `;
+
+  try {
+    const [rows] = await db.execute(sql, [ma_hoa_don]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy đơn hàng hoặc chưa có lịch sử trạng thái.' });
+    }
+
+    res.json({
+      ma_hoa_don,
+      lich_su: rows
+    });
+  } catch (err) {
+    console.error('Lỗi truy vấn trạng thái đơn hàng:', err);
+    res.status(500).json({ message: 'Lỗi máy chủ' });
+  }
+};

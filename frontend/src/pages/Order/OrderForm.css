@@ -120,7 +120,7 @@
 }
 
 .form-actions button:first-child {
-    background-color: #28a745;
+    background-color: #16C47F;
     color: white;
 }
 
@@ -129,7 +129,7 @@
 }
 
 .form-actions button:last-child {
-    background-color: #dc3545;
+    background-color: #F95454;
     color: white;
 }
 

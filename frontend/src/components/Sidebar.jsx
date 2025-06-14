@@ -35,15 +35,15 @@ export default function Sidebar() {
             to="/order"
             className={({ isActive }) => isActive ? 'nav-active' : ''}
           >
-            Đơn hàng
+            Đặt hàng
           </NavLink>
         </li>
         <li>
           <NavLink
-            to="/users"
+            to="/invoices"
             className={({ isActive }) => isActive ? 'nav-active' : ''}
           >
-            Người dùng
+            Đơn hàng
           </NavLink>
         </li>
       </ul>

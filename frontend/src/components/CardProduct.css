@@ -59,14 +59,14 @@
 }
 
 .price {
-    color: #16a34a;
+    color: #16C47F;
     font-weight: 600;
     margin-bottom: 12px;
 }
 
 .select-button {
     width: 100%;
-    background-color: #16a34a;
+    background-color: #16C47F;
     color: white;
     border: none;
     padding: 10px;
@@ -77,7 +77,7 @@
 }
 
 .select-button:hover {
-    background-color: #15803d;
+    background-color: #139b64;
 }
 
 .select-button:disabled {
@@ -88,7 +88,7 @@
 .reset-button {
     margin-top: 8px;
     width: 100%;
-    background-color: #e11d48;
+    background-color: #F95454;
     color: white;
     border: none;
     padding: 10px;
@@ -99,5 +99,5 @@
 }
 
 .reset-button:hover {
-    background-color: #be123c;
+    background-color: #cf3232;
 }

@@ -35,4 +35,44 @@ export async function createOrder(orderData) {
   return result;
 }
 
-  
+export async function getAllOrdersWithDetails() {
+  const response = await fetch(`${API_URL}/orders/detail`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error('Lỗi khi lấy danh sách đơn hàng: ' + errorText);
+  }
+  return await response.json();
+}
+
+export async function updateOrderStatus(ma_don_hang, trang_thai, nguoi_cap_nhat = 1) {
+  const response = await fetch(`${API_URL}/orders/${ma_don_hang}/status`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ trang_thai, nguoi_cap_nhat }),
+  });
+
+  const contentType = response.headers.get("content-type");
+
+  if (!response.ok) {
+    if (contentType && contentType.includes("application/json")) {
+      const error = await response.json();
+      throw new Error(error.message || 'Lỗi khi cập nhật trạng thái');
+    } else {
+      const errorText = await response.text();
+      throw new Error('Lỗi không mong đợi từ server: ' + errorText);
+    }
+  }
+
+  return await response.json();
+}
+
+export async function getOrderStatusHistory(ma_hoa_don) {
+  const response = await fetch(`${API_URL}/status/${ma_hoa_don}`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error('Lỗi khi lấy lịch sử trạng thái: ' + errorText);
+  }
+  return await response.json(); 
+}
