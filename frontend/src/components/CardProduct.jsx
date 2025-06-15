@@ -74,21 +74,30 @@ export default function CardProduct({ product, onSelect, resetSignal  }) {
 
         <button
           className="select-button"
-          onClick={() =>
+          onClick={() => {
+            if (!selectedVariant) return;
+
+            if (selectedVariant.so_luong <= 0) {
+              alert("Sản phẩm này đã hết hàng!");
+              return;
+            }
+
             onSelect({
-              bien_the_id: selectedVariant?.bien_the_id,  // thêm dòng này
+              bien_the_id: selectedVariant.bien_the_id,
               productId: product.id,
               tenSanPham: product.ten_san_pham,
               size: selectedSize,
               color: selectedColor,
-              gia_ban: selectedVariant?.gia_ban || 0,
-              hinh_anh: selectedVariant?.hinh_anh || ""
-            })
-          }
+              gia_ban: selectedVariant.gia_ban,
+              hinh_anh: selectedVariant.hinh_anh,
+              so_luong: selectedVariant.so_luong,
+            });
+          }}
           disabled={!selectedVariant}
         >
           {selectedVariant ? "Chọn biến thể" : "Chọn size và màu"}
         </button>
+
 
 
         {(selectedSize || selectedColor) && (

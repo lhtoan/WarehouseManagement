@@ -42,27 +42,39 @@ export default function Order() {
       return;
     }
   
-    setSelectedVariants((prevSelected) => {
-      const existingIndex = prevSelected.findIndex(
-        (item) =>
-          item.productId === variantInfo.productId &&
-          item.size === variantInfo.size &&
-          item.color === variantInfo.color
-      );
+    if (variantInfo.so_luong === 0) {
+      alert("Sản phẩm này đã hết hàng!");
+      return;
+    }
   
-      if (existingIndex !== -1) {
-        const updated = [...prevSelected];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          quantity: updated[existingIndex].quantity + 1,
-        };
-        return updated;
+    const existingIndex = selectedVariants.findIndex(
+      (item) =>
+        item.productId === variantInfo.productId &&
+        item.size === variantInfo.size &&
+        item.color === variantInfo.color
+    );
+  
+    if (existingIndex !== -1) {
+      const existingItem = selectedVariants[existingIndex];
+  
+      // ✅ Kiểm tra trước khi set state
+      if (existingItem.quantity >= variantInfo.so_luong) {
+        alert("Số lượng đã đạt giới hạn tồn kho!");
+        return;
       }
   
-      return [
-        ...prevSelected,
+      const updated = [...selectedVariants];
+      updated[existingIndex] = {
+        ...existingItem,
+        quantity: existingItem.quantity + 1,
+      };
+      setSelectedVariants(updated);
+    } else {
+      // Chưa có, thêm mới luôn được
+      setSelectedVariants([
+        ...selectedVariants,
         {
-          bien_the_id: variantInfo.bien_the_id, // phải là ID của biến thể
+          bien_the_id: variantInfo.bien_the_id,
           productId: variantInfo.productId,
           tenSanPham: variantInfo.tenSanPham,
           hinh_anh: variantInfo.hinh_anh,
@@ -70,10 +82,13 @@ export default function Order() {
           color: variantInfo.color,
           gia_ban: variantInfo.gia_ban,
           quantity: 1,
+          so_luong: variantInfo.so_luong,
         },
-      ];
-    });
+      ]);
+    }
   };
+  
+  
   
 
   const handleRemove = (index) => {
@@ -234,7 +249,18 @@ export default function Order() {
                       <div className="quantity-control">
                         <button onClick={() => updateQuantity(index, item.quantity - 1)}>-</button>
                         <span>{item.quantity}</span>
-                        <button onClick={() => updateQuantity(index, item.quantity + 1)}>+</button>
+                        <button
+                          onClick={() => {
+                            if (item.quantity < item.so_luong) {
+                              updateQuantity(index, item.quantity + 1);
+                            } else {
+                              alert("Số lượng đã đạt giới hạn tồn kho!");
+                            }
+                          }}
+                        >
+                          +
+                        </button>
+
                       </div>
 
                       <button onClick={() => handleRemove(index)}>Xoá</button>

@@ -94,6 +94,7 @@ exports.getAllProductsWithVariants = async (req, res) => {
         m.ten_mau,
         btsp.hinh_anh,
         btlh.gia_ban,
+        btlh.so_luong,
         btsp.id AS bien_the_id
       FROM san_pham sp
       JOIN bien_the_san_pham btsp ON sp.id = btsp.san_pham_id
@@ -102,12 +103,13 @@ exports.getAllProductsWithVariants = async (req, res) => {
       JOIN bien_the_lo_hang btlh ON btsp.id = btlh.bien_the_id
     `);
 
-    const result = {};
+    const products = {};
 
-    rows.forEach(row => {
+    for (const row of rows) {
       const id = row.san_pham_id;
-      if (!result[id]) {
-        result[id] = {
+
+      if (!products[id]) {
+        products[id] = {
           id,
           ma_san_pham: row.ma_san_pham,
           ten_san_pham: row.ten_san_pham,
@@ -115,21 +117,23 @@ exports.getAllProductsWithVariants = async (req, res) => {
         };
       }
 
-      result[id].variants.push({
+      products[id].variants.push({
         bien_the_id: row.bien_the_id,
         size: row.ten_size,
         color: row.ten_mau,
         hinh_anh: row.hinh_anh,
-        gia_ban: row.gia_ban
+        gia_ban: row.gia_ban,
+        so_luong: row.so_luong
       });
-    });
+    }
 
-    res.json(Object.values(result));
+    res.json(Object.values(products));
   } catch (error) {
-    console.error("Lỗi truy vấn dữ liệu:", error);
-    res.status(500).json({ message: "Lỗi server" });
+    console.error("Lỗi truy vấn dữ liệu sản phẩm với biến thể:", error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+
 
 
 // POST /products - Tạo sản phẩm mới

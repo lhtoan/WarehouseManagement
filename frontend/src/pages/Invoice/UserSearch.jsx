@@ -3,11 +3,11 @@ import { getOrderStatusHistory } from '../../services/orderService';
 import './UserSearch.css';
 
 const STATUS_LIST = [
-  'Đã đóng gói',
-  'Chuyển đơn vị VC',
-  'Đang giao',
-  'Giao thành công',
-  'Hủy'
+  { label: 'Đã đóng gói', value: 'Đã đóng gói' },
+  { label: 'Chuyển đơn vị VC', value: 'Chuyển đơn vị VC' },
+  { label: 'Đang giao', value: 'Đang giao' },
+  { label: 'Giao thành công', value: 'Giao thành công' },
+  { label: 'Hủy', value: 'Hủy' }
 ];
 
 export default function UserSearch() {
@@ -15,23 +15,34 @@ export default function UserSearch() {
   const [history, setHistory] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [searchedMaHoaDon, setSearchedMaHoaDon] = useState('');
 
   const handleSearch = async () => {
     setError('');
     setLoading(true);
     try {
       const data = await getOrderStatusHistory(maHoaDon.trim());
-      setHistory(data.lich_su);
-    } catch (err) {
+      const sortedHistory = data.lich_su.sort((a, b) => new Date(b.thoi_gian) - new Date(a.thoi_gian));
+  
+      if (sortedHistory.length === 0) {
+        setHistory([]);
+        setError('Không tìm thấy đơn hàng. Vui lòng nhập lại mã đơn hàng!');
+      } else {
+        setHistory(sortedHistory);
+        setSearchedMaHoaDon(maHoaDon.trim());
+      }
+    } catch {
       setHistory([]);
-      setError(err.message);
+      setError('Không tìm thấy đơn hàng. Vui lòng nhập lại mã đơn hàng!');
     }
     setLoading(false);
   };
+  
 
-  const getTimeForStatus = (status) => {
-    const match = history.find(item => item.trang_thai === status);
-    return match ? new Date(match.thoi_gian).toLocaleString() : null;
+  const getCurrentStep = () => {
+    const statusOrder = STATUS_LIST.map(s => s.value);
+    const latest = history[0]?.trang_thai;
+    return statusOrder.indexOf(latest) + 1;
   };
 
   return (
@@ -48,31 +59,42 @@ export default function UserSearch() {
       </div>
 
       {loading && <p className="loading">Đang tra cứu...</p>}
-      {error && <p className="error">{error}</p>}
+      {error && <h3 className="not-found-message">{error}</h3>}
+
 
       {history.length > 0 && (
         <div className="result-section">
-          <h3>Kết quả cho hóa đơn: <strong>{maHoaDon}</strong></h3>
-          <ul className="status-list">
-            {STATUS_LIST.map((status, idx) => {
-              const time = getTimeForStatus(status);
-              const isReached = !!time;
+          <h3>Kết quả cho hóa đơn: <strong>{searchedMaHoaDon}</strong></h3>
 
-              return (
-                <li
-                  key={idx}
-                  className={`status-item ${isReached ? 'reached' : ''}`}
-                >
-                  <div className="status-name">{status}</div>
-                  {time && (
-                    <div className="status-time">
-                      Cập nhật lúc: {time}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+          {/* Step Progress Bar */}
+          <div className="step-progress">
+            {STATUS_LIST.map((step, index) => (
+              <div
+                key={index}
+                className={`step-item ${getCurrentStep() > index ? 'active' : ''}`}
+              >
+                <div className="step-icon">✔</div>
+                <div className="step-label">{step.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Timeline */}
+          <div className="timeline-container">
+            {history.map((item, idx) => (
+              <div
+                key={idx}
+                className={`timeline-item ${idx === 0 ? 'latest' : ''}`}
+              >
+                <div className="timeline-time">
+                  {new Date(item.thoi_gian).toLocaleTimeString()}<br />
+                  {new Date(item.thoi_gian).toLocaleDateString()}
+                </div>
+                <div className="timeline-circle" />
+                <div className="timeline-content">{item.trang_thai}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
