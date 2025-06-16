@@ -52,7 +52,7 @@
 .order-form-total {
     margin-top: 15px;
     font-weight: bold;
-    color: #e63946;
+    color: #F95454;
     text-align: right;
 }
 
@@ -104,7 +104,7 @@
 /* Nút hành động */
 .form-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: 10px;
     margin-top: 24px;
 }
@@ -119,21 +119,21 @@
     transition: background-color 0.3s ease;
 }
 
-.form-actions button:first-child {
+.form-actions button:last-child {
     background-color: #16C47F;
     color: white;
 }
 
-.form-actions button:first-child:hover {
+.form-actions button:last-child:hover {
     background-color: #218838;
 }
 
-.form-actions button:last-child {
+.form-actions button:first-child {
     background-color: #F95454;
     color: white;
 }
 
-.form-actions button:last-child:hover {
+.form-actions button:first-child:hover {
     background-color: #c82333;
 }
 

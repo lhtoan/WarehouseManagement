@@ -13,6 +13,7 @@ export default function Product() {
   const [searchText, setSearchText] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
+  const [selectedLoHang, setSelectedLoHang] = useState('');
 
   const navigate = useNavigate();
 
@@ -54,24 +55,29 @@ export default function Product() {
   // Handle search and filter
   useEffect(() => {
     let filtered = productData;
-
+  
     if (searchText) {
       filtered = filtered.filter((item) =>
         item.tenSanPham.toLowerCase().includes(searchText.toLowerCase())
       );
     }
-
+  
     if (selectedSize) {
       filtered = filtered.filter((item) => item.size === selectedSize);
     }
-
+  
     if (selectedColor) {
       filtered = filtered.filter((item) => item.mauSac === selectedColor);
     }
-
+  
+    if (selectedLoHang) {
+      filtered = filtered.filter((item) => item.loHang === selectedLoHang);
+    }
+  
     setFilteredData(filtered);
     setCurrentPage(1); // reset page on filter
-  }, [searchText, selectedSize, selectedColor, productData]);
+  }, [searchText, selectedSize, selectedColor, selectedLoHang, productData]);
+  
 
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -94,6 +100,7 @@ export default function Product() {
   // Get unique sizes and colors for filter buttons
   const uniqueSizes = [...new Set(productData.map((item) => item.size))];
   const uniqueColors = [...new Set(productData.map((item) => item.mauSac))];
+  const uniqueLoHangs = [...new Set(productData.map((item) => item.loHang))];
 
   return (
     <div className="product-page">
@@ -108,33 +115,59 @@ export default function Product() {
           onChange={(e) => setSearchText(e.target.value)}
         />
 
-        <div className="filter-buttons">
+        <div className="filter-comboboxes">
           <div className="filter-group">
-            <span>Size: </span>
-            {uniqueSizes.map((size) => (
-              <button
-                key={size}
-                className={selectedSize === size ? 'active' : ''}
-                onClick={() => setSelectedSize(selectedSize === size ? '' : size)}
-              >
-                {size}
-              </button>
-            ))}
+            <label>Size: </label>
+            <select value={selectedSize} onChange={(e) => setSelectedSize(e.target.value)}>
+              <option value="">Tất cả</option>
+              {uniqueSizes.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="filter-group">
-            <span>Màu: </span>
-            {uniqueColors.map((color) => (
-              <button
-                key={color}
-                className={selectedColor === color ? 'active' : ''}
-                onClick={() => setSelectedColor(selectedColor === color ? '' : color)}
-              >
-                {color}
-              </button>
-            ))}
+            <label>Màu: </label>
+            <select value={selectedColor} onChange={(e) => setSelectedColor(e.target.value)}>
+              <option value="">Tất cả</option>
+              {uniqueColors.map((color) => (
+                <option key={color} value={color}>
+                  {color}
+                </option>
+              ))}
+            </select>
           </div>
+
+          <div className="filter-group">
+            <label>Lô hàng: </label>
+            <select value={selectedLoHang} onChange={(e) => setSelectedLoHang(e.target.value)}>
+              <option value="">Tất cả</option>
+              {uniqueLoHangs.map((lo) => (
+                <option key={lo} value={lo}>
+                  {lo}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginTop: '16px' }}>
+            <label></label>
+            <button
+              className="btn btn-cancel"
+              onClick={() => {
+                setSelectedSize('');
+                setSelectedColor('');
+                setSelectedLoHang('');
+              }}
+            >
+              Bỏ lọc
+            </button>
+          </div>
+
         </div>
+
       </div>
 
       <div className="actions">
@@ -168,7 +201,11 @@ export default function Product() {
               <td>{sp.mauSac}</td>
               <td>{sp.size}</td>
               <td>{sp.giaBan.toLocaleString()} VNĐ</td>
-              <td>{sp.soLuong}</td>
+              <td style={{ color: sp.soLuong === 0 ? 'red' : 'inherit', fontWeight: sp.soLuong === 0 ? 'bold' : 'normal' }}>
+                {sp.soLuong === 0 ? 'HẾT HÀNG' : sp.soLuong}
+              </td>
+
+
               <td>
                 <img
                   src={`http://localhost:3000/images/${sp.hinhAnh}`}
