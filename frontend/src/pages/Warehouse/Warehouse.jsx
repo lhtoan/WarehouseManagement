@@ -226,7 +226,7 @@ export default function WareHouse() {
         </div>
       )}
 
-      <h1>NHẬP HÀNG</h1>
+      
     </div>
   );
 }

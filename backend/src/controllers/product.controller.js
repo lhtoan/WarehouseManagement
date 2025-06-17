@@ -315,3 +315,20 @@ exports.updateProductVariant = async (req, res) => {
     res.status(500).json({ message: 'Lỗi máy chủ' });
   }
 };
+
+exports.deleteVariantById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [result] = await db.query('UPDATE bien_the_san_pham SET trang_thai = ? WHERE id = ?', ['deleted', id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Biến thể không tồn tại' });
+    }
+
+    res.json({ message: 'Xóa biến thể thành công' });
+  } catch (error) {
+    console.error('Lỗi khi xóa biến thể:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ' });
+  }
+};

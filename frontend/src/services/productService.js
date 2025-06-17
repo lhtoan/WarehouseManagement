@@ -125,14 +125,16 @@ export async function fetchProductsWithVariants() {
   return data;
 }
 
-export async function deleteVariantById(id) {
-  const response = await fetch(`${API_URL}/${id}`, {
-    method: "DELETE",
+export async function deleteVariantById(variantId) {
+  const response = await fetch(`${API_URL}/product/${variantId}`, {
+    method: 'DELETE',
   });
 
   if (!response.ok) {
-    throw new Error("Không thể xóa biến thể.");
+    const err = await response.json();
+    throw new Error(err.message || 'Lỗi khi xóa biến thể sản phẩm');
   }
 
-  return await response.json();
+  const data = await response.json();
+  return data;
 }

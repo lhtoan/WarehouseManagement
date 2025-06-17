@@ -162,7 +162,7 @@ export default function Product() {
                 setSelectedLoHang('');
               }}
             >
-              Bỏ lọc
+              <i class="uil uil-filter-slash"></i>
             </button>
           </div>
 
@@ -223,7 +223,7 @@ export default function Product() {
                 >
                   Sửa
                 </button>
-                <button className="btn btn-delete">Xóa</button>
+                {/* <button className="btn btn-delete">Xóa</button> */}
               </td>
             </tr>
           ))}
