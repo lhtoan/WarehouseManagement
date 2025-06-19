@@ -70,10 +70,11 @@ exports.createOrder = async (req, res) => {
 
       await connection.execute(
         `INSERT INTO chi_tiet_don_hang
-         (ma_don_hang, lo_hang_id, so_luong, don_gia)
-         VALUES (?, ?, ?, ?)`,
-        [ma_don_hang, lo_hang_id, item.quantity, item.gia_ban]
+         (ma_don_hang, bien_the_id, lo_hang_id, so_luong, don_gia)
+         VALUES (?, ?, ?, ?, ?)`,
+        [ma_don_hang, item.bien_the_id, lo.lo_hang_id, truSoLuong, item.gia_ban]
       );
+      
     }
 
     // 3. Ghi trạng thái đơn hàng: "Đã đóng gói"
@@ -134,8 +135,7 @@ exports.getAllOrdersWithDetails = async (req, res) => {
       ) ls ON dh.ma_don_hang = ls.ma_don_hang
       JOIN chi_tiet_don_hang ctdh ON dh.ma_don_hang = ctdh.ma_don_hang
       JOIN lo_hang lh ON ctdh.lo_hang_id = lh.id
-      JOIN bien_the_lo_hang btlh ON btlh.lo_hang_id = lh.id
-      JOIN bien_the_san_pham btsp ON btsp.id = btlh.bien_the_id
+      JOIN bien_the_san_pham btsp ON btsp.id = ctdh.bien_the_id
       JOIN san_pham sp ON sp.id = btsp.san_pham_id
       JOIN size sz ON sz.id = btsp.size_id
       JOIN mau m ON m.id = btsp.mau_id
