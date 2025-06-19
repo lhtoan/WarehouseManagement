@@ -128,8 +128,8 @@ export default function OrderForm({
             />
 
             <div className="form-actions">
-              <button onClick={onClose}>Hủy</button>
               <button onClick={handleSubmitOrder}>Xác nhận đơn hàng</button>
+              <button onClick={onClose}>Hủy</button>
             </div>
           </div>
         </div>

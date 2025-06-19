@@ -4,11 +4,11 @@ import { getAllOrdersWithDetails, updateOrderStatus } from '../../services/order
 import './Invoice.css';
 
 const STATUS_OPTIONS = [
-  { label: 'Đã đóng gói', value: 'Đã đóng gói', color: '#0D92F4' },
-  { label: 'Giao cho đơn vị VC', value: 'Chuyển đơn vị VC', color: '#FF7601' },
-  { label: 'Đang giao', value: 'Đang giao', color: '#129990' },
-  { label: 'Giao thành công', value: 'Giao thành công', color: '#16C47F' },
-  { label: 'Hủy', value: 'Hủy', color: '#F95454' }
+  { label: 'Đã đóng gói', value: 'Đã đóng gói', color: '#1976d2' },
+  { label: 'Giao cho đơn vị VC', value: 'Chuyển đơn vị VC', color: '#ff9800' },
+  { label: 'Đang giao', value: 'Đang giao', color: '#9c27b0' },
+  { label: 'Giao thành công', value: 'Giao thành công', color: '#4caf50' },
+  { label: 'Hủy', value: 'Hủy', color: '#f44336' }
 ];
 
 const customSelectStyles = {

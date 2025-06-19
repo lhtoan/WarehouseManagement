@@ -162,7 +162,7 @@ export default function Product() {
                 setSelectedLoHang('');
               }}
             >
-              <i class="uil uil-filter-slash"></i>
+              <i className="uil uil-filter-slash"></i>
             </button>
           </div>
 

@@ -247,9 +247,9 @@ export default function Order() {
                       </p>
 
                       <div className="quantity-control">
-                        <button className="quantity-control-btn" onClick={() => updateQuantity(index, item.quantity - 1)}>-</button>
+                        <button onClick={() => updateQuantity(index, item.quantity - 1)}>-</button>
                         <span>{item.quantity}</span>
-                        <button className="quantity-control-btn"
+                        <button
                           onClick={() => {
                             if (item.quantity < item.so_luong) {
                               updateQuantity(index, item.quantity + 1);
@@ -270,12 +270,11 @@ export default function Order() {
               </ul>
 
               <div className="order-total highlight">
-                Tổng tiền:{" "}
-                <strong>{Number(totalAmount).toLocaleString("vi-VN")} VNĐ</strong>
-                
+                <strong>Tổng tiền:</strong>{" "}
+                {Number(totalAmount).toLocaleString("vi-VN")} VNĐ
               </div>
 
-              <button className="confirm-btn-1" onClick={() => setShowForm(true)}>
+              <button className="confirm-btn" onClick={() => setShowForm(true)}>
                 Xác nhận đơn hàng
               </button>
             </>

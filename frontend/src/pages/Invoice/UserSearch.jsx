@@ -73,7 +73,7 @@ export default function UserSearch() {
                 key={index}
                 className={`step-item ${getCurrentStep() > index ? 'active' : ''}`}
               >
-                <div className="step-icon"></div>
+                <div className="step-icon">✔</div>
                 <div className="step-label">{step.label}</div>
               </div>
             ))}
