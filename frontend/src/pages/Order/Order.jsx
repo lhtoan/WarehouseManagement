@@ -135,7 +135,7 @@ export default function Order() {
       const result = await createOrder(orderData);
       console.log("Đơn hàng đã được tạo:", result);
 
-      alert("Đặt hàng thành công!");
+      alert("Tạo đơn hàng thành công!");
       setShowForm(false);
       setForm({
         ten_khach_hang: "",
@@ -150,7 +150,7 @@ export default function Order() {
     } catch (error) {
       console.error("Lỗi khi gửi đơn hàng:", error);
       // console.log("👉 Dữ liệu gửi đi:", orderData);
-      alert("Đã xảy ra lỗi khi đặt hàng.");
+      alert("Đã xảy ra lỗi khi tạo đơn hàng.");
     }
   };
 
@@ -247,9 +247,9 @@ export default function Order() {
                       </p>
 
                       <div className="quantity-control">
-                        <button onClick={() => updateQuantity(index, item.quantity - 1)}>-</button>
+                        <button className="quantity-control-btn" onClick={() => updateQuantity(index, item.quantity - 1)}>-</button>
                         <span>{item.quantity}</span>
-                        <button
+                        <button className="quantity-control-btn"
                           onClick={() => {
                             if (item.quantity < item.so_luong) {
                               updateQuantity(index, item.quantity + 1);
@@ -270,11 +270,11 @@ export default function Order() {
               </ul>
 
               <div className="order-total highlight">
-                <strong>Tổng tiền:</strong>{" "}
-                {Number(totalAmount).toLocaleString("vi-VN")} VNĐ
+                Tổng tiền:{" "}
+                <strong>{Number(totalAmount).toLocaleString("vi-VN")} VNĐ</strong>
               </div>
 
-              <button className="confirm-btn" onClick={() => setShowForm(true)}>
+              <button className="confirm-btn-1" onClick={() => setShowForm(true)}>
                 Xác nhận đơn hàng
               </button>
             </>

@@ -24,12 +24,11 @@ exports.createOrder = async (req, res) => {
     tong_tien
   } = req.body;
 
-  const connection = await db.getConnection(); // lấy kết nối DB
+  const connection = await db.getConnection();
 
   try {
     await connection.beginTransaction();
 
-    // Tạo mã hóa đơn
     const ma_hoa_don = taoMaHoaDon(so_dien_thoai);
 
     // 1. Tạo đơn hàng
@@ -50,10 +49,10 @@ exports.createOrder = async (req, res) => {
 
     const ma_don_hang = orderResult.insertId;
 
-    // 2. Thêm từng chi tiết đơn hàng
+    // 2. Thêm từng chi tiết đơn hàng và cập nhật số lượng kho
     for (const item of items) {
       const [resLoHang] = await connection.execute(
-        `SELECT l.id 
+        `SELECT l.id, btlh.so_luong 
          FROM bien_the_lo_hang btlh
          JOIN lo_hang l ON btlh.lo_hang_id = l.id
          WHERE btlh.bien_the_id = ?
@@ -67,17 +66,30 @@ exports.createOrder = async (req, res) => {
       }
 
       const lo_hang_id = resLoHang[0].id;
+      const so_luong_hien_tai = resLoHang[0].so_luong;
 
+      if (so_luong_hien_tai < item.quantity) {
+        throw new Error(`Không đủ số lượng tồn kho cho biến thể ID ${item.bien_the_id}`);
+      }
+
+      // Thêm chi tiết đơn hàng
       await connection.execute(
         `INSERT INTO chi_tiet_don_hang
          (ma_don_hang, bien_the_id, lo_hang_id, so_luong, don_gia)
          VALUES (?, ?, ?, ?, ?)`,
-        [ma_don_hang, item.bien_the_id, lo.lo_hang_id, truSoLuong, item.gia_ban]
+        [ma_don_hang, item.bien_the_id, lo_hang_id, item.quantity, item.gia_ban]
       );
-      
+
+      // Trừ số lượng trong kho
+      await connection.execute(
+        `UPDATE bien_the_lo_hang
+         SET so_luong = so_luong - ?
+         WHERE bien_the_id = ? AND lo_hang_id = ?`,
+        [item.quantity, item.bien_the_id, lo_hang_id]
+      );
     }
 
-    // 3. Ghi trạng thái đơn hàng: "Đã đóng gói"
+    // 3. Ghi trạng thái đơn hàng
     await connection.execute(
       `INSERT INTO lich_su_trang_thai_don_hang
          (ma_don_hang, trang_thai, nguoi_cap_nhat)
@@ -99,9 +111,10 @@ exports.createOrder = async (req, res) => {
       error: err.message
     });
   } finally {
-    connection.release(); // giải phóng kết nối
+    connection.release();
   }
 };
+
 
 exports.getAllOrdersWithDetails = async (req, res) => {
   try {

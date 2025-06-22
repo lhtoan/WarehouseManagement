@@ -57,14 +57,22 @@ export default function Product() {
     let filtered = productData;
   
     if (searchText) {
+      const lowerSearch = searchText.toLowerCase();
       filtered = filtered.filter((item) =>
-        item.tenSanPham.toLowerCase().includes(searchText.toLowerCase())
+        item.tenSanPham.toLowerCase().includes(lowerSearch) ||
+        item.maSanPham.toLowerCase().includes(lowerSearch) ||
+        item.mauSac.toLowerCase().includes(lowerSearch) ||
+        item.size.toLowerCase().includes(lowerSearch) ||
+        item.loHang.toLowerCase().includes(lowerSearch) ||
+        item.giaBan.toString().includes(lowerSearch) ||
+        item.soLuong.toString().includes(lowerSearch)
       );
     }
   
     if (selectedSize) {
-      filtered = filtered.filter((item) => item.size === selectedSize);
+      filtered = filtered.filter((item) => item.size.trim() === selectedSize);
     }
+    
   
     if (selectedColor) {
       filtered = filtered.filter((item) => item.mauSac === selectedColor);
@@ -98,7 +106,8 @@ export default function Product() {
   };
 
   // Get unique sizes and colors for filter buttons
-  const uniqueSizes = [...new Set(productData.map((item) => item.size))];
+  const uniqueSizes = [...new Set(productData.map((item) => item.size.trim()))];
+
   const uniqueColors = [...new Set(productData.map((item) => item.mauSac))];
   const uniqueLoHangs = [...new Set(productData.map((item) => item.loHang))];
 

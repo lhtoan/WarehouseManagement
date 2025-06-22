@@ -114,7 +114,7 @@
 }
 
 .timeline-item.latest .timeline-circle {
-    background-color: #4caf50;
+    background-color: #16C47F;
 }
 
 .timeline-content {
@@ -122,7 +122,7 @@
 }
 
 .not-found-message {
-    color: #e74c3c;
+    color: #F95454;
     margin-top: 20px;
     font-weight: bold;
 }

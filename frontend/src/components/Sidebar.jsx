@@ -24,14 +24,6 @@ export default function Sidebar() {
         </li>
         <li>
           <NavLink
-            to="/warehouse"
-            className={({ isActive }) => isActive ? 'nav-active' : ''}
-          >
-            Kho hàng
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
             to="/order"
             className={({ isActive }) => isActive ? 'nav-active' : ''}
           >
@@ -44,6 +36,14 @@ export default function Sidebar() {
             className={({ isActive }) => isActive ? 'nav-active' : ''}
           >
             Đơn hàng
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to="/warehouse"
+            className={({ isActive }) => isActive ? 'nav-active' : ''}
+          >
+            Cài đặt
           </NavLink>
         </li>
       </ul>
