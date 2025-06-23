@@ -8,5 +8,6 @@ router.post('/products/add', upload.single('hinh_anh'), productController.create
 router.post('/products/:id/variants', upload.single('hinh_anh'), productController.addVariant);
 router.put('/products/update/:variantId/:loHangId', upload.single('hinh_anh'), productController.updateProductVariant);
 router.get('/productsdetail', productController.getAllProductsWithVariants);
-router.delete('/product/:id', productController.deleteVariantById);
+router.delete('/product/:id', productController.softDeleteVariant);
+
 module.exports = router;

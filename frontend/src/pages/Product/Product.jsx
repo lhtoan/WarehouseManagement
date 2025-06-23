@@ -1,6 +1,6 @@
 import './Product.css';
 import { useState, useEffect } from 'react';
-import { fetchProducts } from '../../services/productService';
+import { fetchProducts, deleteVariantById } from '../../services/productService';
 import { useNavigate } from 'react-router-dom';
 import FormUpdate from './FormUpdate';
 
@@ -97,6 +97,19 @@ export default function Product() {
     loadProducts();
     setShowUpdatePopup(false);
     setSelectedProduct(null);
+  };
+
+  const handleDelete = async (variantId) => {
+    if (!window.confirm('Bạn có chắc muốn xóa biến thể này?')) return;
+  
+    try {
+      await deleteVariantById(variantId); 
+      // alert(data.message);
+      loadProducts();
+    } catch (err) {
+      console.error('Lỗi khi xóa biến thể:', err);
+      alert(err.message);
+    }
   };
 
   const goToPage = (page) => {
@@ -232,7 +245,10 @@ export default function Product() {
                 >
                   Sửa
                 </button>
-                {/* <button className="btn btn-delete">Xóa</button> */}
+                <button className="btn btn-delete" onClick={() => handleDelete(sp.variantId)}>
+                  Xóa
+                </button>
+
               </td>
             </tr>
           ))}

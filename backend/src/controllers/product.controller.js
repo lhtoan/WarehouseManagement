@@ -24,6 +24,7 @@ exports.getAllProducts = async (req, res) => {
       JOIN mau m ON m.id = bt.mau_id
       JOIN bien_the_lo_hang btlh ON btlh.bien_the_id = bt.id
       JOIN lo_hang lh ON lh.id = btlh.lo_hang_id
+      WHERE bt.da_xoa = FALSE
       ORDER BY sp.id, bt.id, lh.ngay_nhap
     `);
 
@@ -101,6 +102,7 @@ exports.getAllProductsWithVariants = async (req, res) => {
       JOIN size sz ON btsp.size_id = sz.id
       JOIN mau m ON btsp.mau_id = m.id
       JOIN bien_the_lo_hang btlh ON btsp.id = btlh.bien_the_id
+      WHERE btsp.da_xoa = FALSE
     `);
 
     const products = {};
@@ -134,38 +136,6 @@ exports.getAllProductsWithVariants = async (req, res) => {
   }
 };
 
-
-
-// POST /products - Tạo sản phẩm mới
-exports.createProduct = async (req, res) => {
-  const connection = await db.getConnection();
-  try {
-    const { ma_san_pham, ten_san_pham } = req.body;
-
-    const [existing] = await connection.execute(
-      'SELECT ma_san_pham FROM san_pham WHERE ma_san_pham = ?',
-      [ma_san_pham]
-    );
-    if (existing.length > 0) {
-      return res.status(400).json({ error: 'Mã sản phẩm đã tồn tại' });
-    }
-
-    const [result] = await connection.execute(
-      'INSERT INTO san_pham (ma_san_pham, ten_san_pham) VALUES (?, ?)',
-      [ma_san_pham, ten_san_pham]
-    );
-
-    res.status(201).json({
-      message: 'Tạo sản phẩm thành công',
-      san_pham_id: result.insertId
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Lỗi server khi tạo sản phẩm' });
-  } finally {
-    connection.release();
-  }
-};
 
 // // POST /products
 // // controllers/product.controller.js
@@ -330,5 +300,25 @@ exports.deleteVariantById = async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi xóa biến thể:', error);
     res.status(500).json({ message: 'Lỗi máy chủ' });
+  }
+};
+
+exports.softDeleteVariant = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Kiểm tra biến thể có tồn tại không
+    const [check] = await db.query('SELECT * FROM bien_the_san_pham WHERE id = ?', [id]);
+    if (check.length === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy biến thể' });
+    }
+
+    // Xóa mềm: cập nhật cột da_xoa = TRUE
+    await db.query('UPDATE bien_the_san_pham SET da_xoa = TRUE WHERE id = ?', [id]);
+
+    res.json({ message: 'Xóa sản phẩm thành công!' });
+  } catch (error) {
+    console.error('Lỗi khi xóa mềm biến thể:', error);
+    res.status(500).json({ error: 'Lỗi server' });
   }
 };
