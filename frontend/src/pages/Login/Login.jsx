@@ -56,7 +56,7 @@ export default function Login() {
 
     try {
       const data = await login(email, password);
-      localStorage.setItem('token', data.token);
+      sessionStorage.setItem('token', data.token);
       navigate('/home');
     } catch (error) {
       setErrorMsg(error.message);

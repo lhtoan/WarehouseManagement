@@ -11,22 +11,30 @@ import Warehouse from './pages/Warehouse/Warehouse';
 import Order from './pages/Order/Order';
 import Invoice from './pages/Invoice/Invoice';
 import UserSearch from './pages/Invoice/UserSearch';
+import ProtectedRoute from './ProtectedRoute'
+
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
-        {/* Các route bên trong Layout có Sidebar */}
-        <Route path="/" element={<Layout />}>
-          <Route path="home" element={<Home />} />
-          <Route path="products" element={<Product />} />
-          <Route path="products/add" element={<ProductAddForm />} />
-          <Route path="warehouse" element={<Warehouse />} />
-          <Route path="order" element={<Order />} />
-          <Route path="invoices" element={<Invoice />} />
+
+        <Route element={<ProtectedRoute />}>
+          {/* Layout chung nếu cần sidebar */}
+          <Route path="/" element={<Layout />}>
+            <Route path="home" element={<Home />} />
+            <Route path="products" element={<Product />} />
+            <Route path="products/add" element={<ProductAddForm />} />
+            <Route path="warehouse" element={<Warehouse />} />
+            <Route path="order" element={<Order />} />
+            <Route path="invoices" element={<Invoice />} />
+          </Route>
+          {/* Route bên ngoài layout nhưng vẫn bảo vệ */}
+          
         </Route>
-        <Route path="/invoices/search" element={<UserSearch />} />
+        <Route path="don-hang/tra-cuu" element={<UserSearch />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
