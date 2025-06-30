@@ -8,6 +8,7 @@ const productRoutes = require('./src/routes/product.route');
 const attributeRoutes = require('./src/routes/attribute.route');
 const batchRoutes = require('./src/routes/batch.route');
 const orderRoutes = require('./src/routes/order.route');
+const revenueRoutes = require('./src/routes/statistics.route');
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.use('/', productRoutes);
 app.use('/', attributeRoutes);
 app.use('/', batchRoutes);
 app.use('/', orderRoutes);
-
+app.use('/', revenueRoutes);
 
 app.use('/images', express.static(path.join(__dirname, 'public/products')));
 

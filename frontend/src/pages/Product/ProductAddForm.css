@@ -184,3 +184,20 @@ button.btn-success:hover {
 .popup-error {
     background-color: #F95454;
 }
+
+button.btn-info {
+    background-color: #0D92F4;
+    color: white;
+    height: 40px;
+    padding-bottom: 10px;
+}
+
+button.btn-info:hover {
+    background-color: #0D92F4;
+}
+
+.button {
+    display: flex;
+    justify-content: flex-end;
+    padding-bottom: 10px;
+}

@@ -35,7 +35,7 @@ export default function Product() {
             size: variant.size,
             giaBan: Number(lo.gia_ban),
             soLuong: lo.so_luong,
-            loHang: new Date(lo.ngay_nhap).toLocaleDateString('vi-VN'),
+            loHang: `${lo.ma_lo}\n${new Date(lo.ngay_nhap).toLocaleDateString('vi-VN')}`,
             variantId: variant.bien_the_id,
             loHangId: lo.lo_hang_id,
           }));
@@ -218,7 +218,7 @@ export default function Product() {
             <tr key={`${sp.maSanPham}-${i}`}>
               <td>{indexOfFirstItem + i + 1}</td>
               <td>{sp.maSanPham}</td>
-              <td>{sp.loHang}</td>
+              <td style={{ whiteSpace: 'pre-line' }}>{sp.loHang}</td>
               <td>{sp.tenSanPham}</td>
               <td>{sp.mauSac}</td>
               <td>{sp.size}</td>

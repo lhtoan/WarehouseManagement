@@ -9,5 +9,5 @@ router.post('/products/:id/variants', upload.single('hinh_anh'), productControll
 router.put('/products/update/:variantId/:loHangId', upload.single('hinh_anh'), productController.updateProductVariant);
 router.get('/productsdetail', productController.getAllProductsWithVariants);
 router.delete('/product/:id', productController.softDeleteVariant);
-
+router.put('/variants/update-multiple', upload.any(), productController.updateAllVariants);
 module.exports = router;

@@ -42,6 +42,8 @@
 
 const db = require('../config/db');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -87,4 +89,53 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { login };
+const register = async (req, res) => {
+  const { ten, email, vai_tro = 'nhanvien' } = req.body;
+
+  if (!ten || !email) {
+    return res.status(400).json({ message: 'Tên và email không được bỏ trống' });
+  }
+
+  try {
+    // Tạo mật khẩu ngẫu nhiên
+    const rawPassword = Math.random().toString(36).slice(-8); // vd: "a3fj9klm"
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+    // Thêm vào CSDL
+    await db.query(
+      'INSERT INTO nguoi_dung (ten, email, mat_khau, vai_tro) VALUES (?, ?, ?, ?)',
+      [ten, email, hashedPassword, vai_tro]
+    );
+
+    res.json({
+      message: 'Tạo tài khoản thành công',
+      ten,
+      email,
+      mat_khau_goc: rawPassword
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Lỗi tạo tài khoản' });
+  }
+};
+
+const getAllUsers = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT id, ten, email, mat_khau, vai_tro 
+      FROM nguoi_dung
+      ORDER BY id ASC
+    `);
+
+    res.json({
+      message: 'Lấy danh sách người dùng thành công',
+      data: rows
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Lỗi khi lấy danh sách người dùng' });
+  }
+};
+
+
+module.exports = { login, register, getAllUsers };

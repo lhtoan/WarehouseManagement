@@ -1,0 +1,38 @@
+.thongke {
+    padding: 20px;
+  }
+  
+  .header_addproduct h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .main-container {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .main-cards {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    width: 200px;
+    text-align: center;
+  }
+  
+  .card-inner h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  
+  .card h1 {
+    font-size: 22px;
+    color: #333;
+  }
+  

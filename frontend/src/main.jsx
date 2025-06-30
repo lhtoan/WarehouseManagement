@@ -12,8 +12,7 @@ import Order from './pages/Order/Order';
 import Invoice from './pages/Invoice/Invoice';
 import UserSearch from './pages/Invoice/UserSearch';
 import ProtectedRoute from './ProtectedRoute'
-
-
+// import Member from './pages/Member/Member'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -30,6 +29,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="warehouse" element={<Warehouse />} />
             <Route path="order" element={<Order />} />
             <Route path="invoices" element={<Invoice />} />
+            {/* <Route path="member" element={<Member />} /> */}
           </Route>
           {/* Route bên ngoài layout nhưng vẫn bảo vệ */}
           

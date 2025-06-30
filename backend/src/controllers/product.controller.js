@@ -16,7 +16,8 @@ exports.getAllProducts = async (req, res) => {
         btlh.gia_ban,
         btlh.so_luong,
         
-        lh.id AS lo_hang_id,    -- thêm trường id lô hàng
+        lh.id AS lo_hang_id,
+        lh.ma_lo,
         lh.ngay_nhap
       FROM san_pham sp
       JOIN bien_the_san_pham bt ON bt.san_pham_id = sp.id
@@ -42,6 +43,7 @@ exports.getAllProducts = async (req, res) => {
         gia_ban,
         so_luong,
         lo_hang_id,
+        ma_lo,
         ngay_nhap
       } = row;
 
@@ -68,7 +70,8 @@ exports.getAllProducts = async (req, res) => {
       }
 
       variant.lo_hang.push({
-        lo_hang_id,  // id lô hàng được thêm vào đây
+        lo_hang_id,
+        ma_lo,  
         gia_ban,
         so_luong,
         ngay_nhap
@@ -91,19 +94,28 @@ exports.getAllProductsWithVariants = async (req, res) => {
         sp.id AS san_pham_id,
         sp.ma_san_pham,
         sp.ten_san_pham,
+    
         sz.ten_size,
         m.ten_mau,
         btsp.hinh_anh,
+        btsp.id AS bien_the_id,
+    
         btlh.gia_ban,
         btlh.so_luong,
-        btsp.id AS bien_the_id
+    
+        lh.id AS lo_hang_id,
+        lh.ma_lo,
+        lh.ngay_nhap
+    
       FROM san_pham sp
       JOIN bien_the_san_pham btsp ON sp.id = btsp.san_pham_id
       JOIN size sz ON btsp.size_id = sz.id
       JOIN mau m ON btsp.mau_id = m.id
       JOIN bien_the_lo_hang btlh ON btsp.id = btlh.bien_the_id
+      JOIN lo_hang lh ON lh.id = btlh.lo_hang_id
       WHERE btsp.da_xoa = FALSE
     `);
+    
 
     const products = {};
 
@@ -125,8 +137,12 @@ exports.getAllProductsWithVariants = async (req, res) => {
         color: row.ten_mau,
         hinh_anh: row.hinh_anh,
         gia_ban: row.gia_ban,
-        so_luong: row.so_luong
+        so_luong: row.so_luong,
+        lo_hang_id: row.lo_hang_id,
+        ma_lo: row.ma_lo,
+        ngay_nhap: row.ngay_nhap
       });
+      
     }
 
     res.json(Object.values(products));
@@ -135,6 +151,7 @@ exports.getAllProductsWithVariants = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+
 
 
 // // POST /products
@@ -320,5 +337,67 @@ exports.softDeleteVariant = async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi xóa mềm biến thể:', error);
     res.status(500).json({ error: 'Lỗi server' });
+  }
+};
+
+exports.updateAllVariants = async (req, res) => {
+  try {
+    const variants = JSON.parse(req.body.variants);
+    const fileMap = {};
+
+    // Tạo map từ fieldname (variantId) sang file ảnh
+    if (Array.isArray(req.files)) {
+      req.files.forEach(file => {
+        fileMap[file.fieldname] = file.filename;
+      });
+    }
+
+    for (const variant of variants) {
+      const {
+        id: variantId,
+        lo_hang_id,
+        gia_ban,
+        so_luong,
+        ma_lo,
+        ngay_nhap
+      } = variant;
+
+      const hinhAnhMoi = fileMap[variantId] || null;
+
+      // ✅ Cập nhật ảnh mới nếu có
+      if (hinhAnhMoi) {
+        await db.query(
+          'UPDATE bien_the_san_pham SET hinh_anh = ? WHERE id = ?',
+          [hinhAnhMoi, variantId]
+        );
+      }
+
+      // ✅ Cập nhật bảng bien_the_lo_hang (giá và số lượng)
+      await db.query(
+        'UPDATE bien_the_lo_hang SET gia_ban = ?, so_luong = ? WHERE bien_the_id = ? AND lo_hang_id = ?',
+        [gia_ban, so_luong, variantId, lo_hang_id]
+      );
+
+      // ✅ Cập nhật bảng lo_hang nếu có
+      if (ma_lo && ngay_nhap) {
+        const [result] = await db.query(
+          'UPDATE lo_hang SET ma_lo = ?, ngay_nhap = ? WHERE id = ?',
+          [ma_lo, ngay_nhap, lo_hang_id]
+        );
+        // console.log(`Updated lo_hang:`, result);
+      }
+
+      // ✅ Cập nhật lại lo_hang_id nếu người dùng chọn sang lô khác
+      // Giả sử client đã đổi lô hàng → cần cập nhật lại lo_hang_id của biến thể
+      await db.query(
+        'UPDATE bien_the_lo_hang SET lo_hang_id = ? WHERE bien_the_id = ?',
+        [lo_hang_id, variantId]
+      );
+    }
+
+    res.json({ message: 'Cập nhật tất cả biến thể thành công!' });
+  } catch (err) {
+    console.error('❌ Lỗi updateAllVariants:', err);
+    res.status(500).json({ message: 'Lỗi khi cập nhật biến thể' });
   }
 };
