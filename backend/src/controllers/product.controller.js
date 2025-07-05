@@ -340,6 +340,74 @@ exports.softDeleteVariant = async (req, res) => {
   }
 };
 
+// exports.updateAllVariants = async (req, res) => {
+//   try {
+//     const variants = JSON.parse(req.body.variants);
+//     const fileMap = {};
+
+//     // Map file từ variantId sang ảnh
+//     if (Array.isArray(req.files)) {
+//       req.files.forEach(file => {
+//         fileMap[file.fieldname] = file.filename;
+//       });
+//     }
+
+//     for (const variant of variants) {
+//       const {
+//         id: variantId,
+//         lo_hang_id,
+//         gia_ban,
+//         so_luong,
+//         ma_lo,
+//         ngay_nhap
+//       } = variant;
+
+//       const hinhAnhMoi = fileMap[variantId] || null;
+
+//       // ✅ Cập nhật ảnh nếu có
+//       if (hinhAnhMoi) {
+//         await db.query(
+//           'UPDATE bien_the_san_pham SET hinh_anh = ? WHERE id = ?',
+//           [hinhAnhMoi, variantId]
+//         );
+//       }
+
+//       // ✅ Cập nhật thông tin lô hàng nếu mã lô hoặc ngày nhập thay đổi
+//       if (ma_lo && ngay_nhap) {
+//         await db.query(
+//           'UPDATE lo_hang SET ma_lo = ?, ngay_nhap = ? WHERE id = ?',
+//           [ma_lo, ngay_nhap, lo_hang_id]
+//         );
+//       }
+
+//       // ✅ Kiểm tra tồn tại của biến thể - lô hàng
+//       const [existing] = await db.query(
+//         'SELECT * FROM bien_the_lo_hang WHERE bien_the_id = ?',
+//         [variantId]
+//       );
+
+//       if (existing.length > 0) {
+//         // 🔁 Nếu đã có: cập nhật thông tin
+//         await db.query(
+//           'UPDATE bien_the_lo_hang SET lo_hang_id = ?, gia_ban = ?, so_luong = ? WHERE bien_the_id = ?',
+//           [lo_hang_id, gia_ban, so_luong, variantId]
+//         );
+//       } else {
+//         // ➕ Nếu chưa có: chèn mới
+//         await db.query(
+//           'INSERT INTO bien_the_lo_hang (bien_the_id, lo_hang_id, gia_ban, so_luong) VALUES (?, ?, ?, ?)',
+//           [variantId, lo_hang_id, gia_ban, so_luong]
+//         );
+//       }
+//     }
+
+//     res.json({ message: 'Cập nhật tất cả biến thể thành công!' });
+//   } catch (err) {
+//     console.error('❌ Lỗi updateAllVariants:', err);
+//     res.status(500).json({ message: 'Lỗi khi cập nhật biến thể' });
+//   }
+// };
+
 exports.updateAllVariants = async (req, res) => {
   try {
     const variants = JSON.parse(req.body.variants);
@@ -372,27 +440,33 @@ exports.updateAllVariants = async (req, res) => {
         );
       }
 
-      // ✅ Cập nhật bảng bien_the_lo_hang (giá và số lượng)
-      await db.query(
-        'UPDATE bien_the_lo_hang SET gia_ban = ?, so_luong = ? WHERE bien_the_id = ? AND lo_hang_id = ?',
-        [gia_ban, so_luong, variantId, lo_hang_id]
-      );
-
-      // ✅ Cập nhật bảng lo_hang nếu có
+      // ✅ Cập nhật bảng lo_hang nếu có thay đổi
       if (ma_lo && ngay_nhap) {
-        const [result] = await db.query(
+        await db.query(
           'UPDATE lo_hang SET ma_lo = ?, ngay_nhap = ? WHERE id = ?',
           [ma_lo, ngay_nhap, lo_hang_id]
         );
-        // console.log(`Updated lo_hang:`, result);
       }
 
-      // ✅ Cập nhật lại lo_hang_id nếu người dùng chọn sang lô khác
-      // Giả sử client đã đổi lô hàng → cần cập nhật lại lo_hang_id của biến thể
-      await db.query(
-        'UPDATE bien_the_lo_hang SET lo_hang_id = ? WHERE bien_the_id = ?',
-        [lo_hang_id, variantId]
+      // ✅ Kiểm tra bản ghi tồn tại trong bien_the_lo_hang
+      const [rows] = await db.query(
+        'SELECT * FROM bien_the_lo_hang WHERE bien_the_id = ? AND lo_hang_id = ?',
+        [variantId, lo_hang_id]
       );
+
+      if (rows.length > 0) {
+        // ✅ Đã có → cập nhật giá và số lượng
+        await db.query(
+          'UPDATE bien_the_lo_hang SET gia_ban = ?, so_luong = ? WHERE bien_the_id = ? AND lo_hang_id = ?',
+          [gia_ban, so_luong, variantId, lo_hang_id]
+        );
+      } else {
+        // ✅ Chưa có → chèn mới
+        await db.query(
+          'INSERT INTO bien_the_lo_hang (bien_the_id, lo_hang_id, gia_ban, so_luong) VALUES (?, ?, ?, ?)',
+          [variantId, lo_hang_id, gia_ban, so_luong]
+        );
+      }
     }
 
     res.json({ message: 'Cập nhật tất cả biến thể thành công!' });

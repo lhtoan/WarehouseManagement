@@ -42,8 +42,19 @@ export default function Order() {
       return;
     }
   
-    if (variantInfo.so_luong === 0) {
-      alert("Sản phẩm này đã hết hàng!");
+    // ✅ Tính tổng số lượng tồn kho từ tất cả các lô của biến thể này
+    const selectedProduct = products.find((p) => p.id === variantInfo.productId);
+    const totalAvailable = selectedProduct?.variants
+      .filter(
+        (v) =>
+          v.size === variantInfo.size &&
+          v.color === variantInfo.color &&
+          v.bien_the_id === variantInfo.bien_the_id
+      )
+      .reduce((sum, v) => sum + v.so_luong, 0) || 0;
+  
+    if (totalAvailable === 0) {
+      alert("Tất cả các lô của sản phẩm này đã hết hàng!");
       return;
     }
   
@@ -57,8 +68,7 @@ export default function Order() {
     if (existingIndex !== -1) {
       const existingItem = selectedVariants[existingIndex];
   
-      // ✅ Kiểm tra trước khi set state
-      if (existingItem.quantity >= variantInfo.so_luong) {
+      if (existingItem.quantity >= totalAvailable) {
         alert("Số lượng đã đạt giới hạn tồn kho!");
         return;
       }
@@ -70,7 +80,6 @@ export default function Order() {
       };
       setSelectedVariants(updated);
     } else {
-      // Chưa có, thêm mới luôn được
       setSelectedVariants([
         ...selectedVariants,
         {
@@ -82,11 +91,12 @@ export default function Order() {
           color: variantInfo.color,
           gia_ban: variantInfo.gia_ban,
           quantity: 1,
-          so_luong: variantInfo.so_luong,
+          so_luong: totalAvailable, // ✅ lưu tổng số lượng tồn để giới hạn ở "+" button
         },
       ]);
     }
   };
+  
   
   
   

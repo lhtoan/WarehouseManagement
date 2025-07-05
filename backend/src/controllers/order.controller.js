@@ -13,6 +13,108 @@ function taoMaHoaDon(soDienThoai) {
 }
 
 
+// exports.createOrder = async (req, res) => {
+//   const {
+//     ten_khach_hang,
+//     so_dien_thoai,
+//     dia_chi,
+//     ghi_chu,
+//     don_vi_vc_id,
+//     items,
+//     tong_tien
+//   } = req.body;
+
+//   const connection = await db.getConnection();
+
+//   try {
+//     await connection.beginTransaction();
+
+//     const ma_hoa_don = taoMaHoaDon(so_dien_thoai);
+
+//     // 1. Tạo đơn hàng
+//     const [orderResult] = await connection.execute(
+//       `INSERT INTO don_hang 
+//         (ma_hoa_don, ten_khach_hang, so_dien_thoai, dia_chi, ghi_chu, tong_tien, don_vi_vc_id)
+//        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+//       [
+//         ma_hoa_don,
+//         ten_khach_hang,
+//         so_dien_thoai,
+//         dia_chi,
+//         ghi_chu || null,
+//         tong_tien,
+//         don_vi_vc_id
+//       ]
+//     );
+
+//     const ma_don_hang = orderResult.insertId;
+
+//     // 2. Thêm từng chi tiết đơn hàng và cập nhật số lượng kho
+//     for (const item of items) {
+//       const [resLoHang] = await connection.execute(
+//         `SELECT l.id, btlh.so_luong 
+//          FROM bien_the_lo_hang btlh
+//          JOIN lo_hang l ON btlh.lo_hang_id = l.id
+//          WHERE btlh.bien_the_id = ?
+//          ORDER BY l.ngay_nhap DESC 
+//          LIMIT 1`,
+//         [item.bien_the_id]
+//       );
+
+//       if (!resLoHang.length) {
+//         throw new Error(`Không tìm thấy lô hàng cho biến thể ID ${item.bien_the_id}`);
+//       }
+
+//       const lo_hang_id = resLoHang[0].id;
+//       const so_luong_hien_tai = resLoHang[0].so_luong;
+
+//       if (so_luong_hien_tai < item.quantity) {
+//         throw new Error(`Không đủ số lượng tồn kho cho biến thể ID ${item.bien_the_id}`);
+//       }
+
+//       // Thêm chi tiết đơn hàng
+//       await connection.execute(
+//         `INSERT INTO chi_tiet_don_hang
+//          (ma_don_hang, bien_the_id, lo_hang_id, so_luong, don_gia)
+//          VALUES (?, ?, ?, ?, ?)`,
+//         [ma_don_hang, item.bien_the_id, lo_hang_id, item.quantity, item.gia_ban]
+//       );
+
+//       // Trừ số lượng trong kho
+//       await connection.execute(
+//         `UPDATE bien_the_lo_hang
+//          SET so_luong = so_luong - ?
+//          WHERE bien_the_id = ? AND lo_hang_id = ?`,
+//         [item.quantity, item.bien_the_id, lo_hang_id]
+//       );
+//     }
+
+//     // 3. Ghi trạng thái đơn hàng
+//     await connection.execute(
+//       `INSERT INTO lich_su_trang_thai_don_hang
+//          (ma_don_hang, trang_thai, nguoi_cap_nhat)
+//        VALUES (?, ?, ?)`,
+//       [ma_don_hang, "Đã đóng gói", 1]
+//     );
+
+//     await connection.commit();
+//     res.status(201).json({
+//       message: "Tạo đơn hàng thành công",
+//       ma_don_hang,
+//       ma_hoa_don
+//     });
+//   } catch (err) {
+//     await connection.rollback();
+//     console.error("Lỗi khi tạo đơn hàng:", err);
+//     res.status(500).json({
+//       message: "Lỗi khi tạo đơn hàng",
+//       error: err.message
+//     });
+//   } finally {
+//     connection.release();
+//   }
+// };
+
 exports.createOrder = async (req, res) => {
   const {
     ten_khach_hang,
@@ -49,50 +151,54 @@ exports.createOrder = async (req, res) => {
 
     const ma_don_hang = orderResult.insertId;
 
-    // 2. Thêm từng chi tiết đơn hàng và cập nhật số lượng kho
+    // 2. Xử lý từng sản phẩm
     for (const item of items) {
-      const [resLoHang] = await connection.execute(
-        `SELECT l.id, btlh.so_luong 
+      let quantityNeeded = item.quantity;
+
+      // Lấy danh sách lô hàng của biến thể, ưu tiên lô nhập sớm nhất
+      const [batches] = await connection.execute(
+        `SELECT l.id AS lo_hang_id, btlh.so_luong, l.ngay_nhap
          FROM bien_the_lo_hang btlh
          JOIN lo_hang l ON btlh.lo_hang_id = l.id
          WHERE btlh.bien_the_id = ?
-         ORDER BY l.ngay_nhap DESC 
-         LIMIT 1`,
+         ORDER BY l.ngay_nhap ASC`,
         [item.bien_the_id]
       );
 
-      if (!resLoHang.length) {
-        throw new Error(`Không tìm thấy lô hàng cho biến thể ID ${item.bien_the_id}`);
+      let totalAvailable = batches.reduce((sum, b) => sum + b.so_luong, 0);
+      if (totalAvailable < quantityNeeded) {
+        throw new Error(`Không đủ hàng tồn kho cho biến thể ID ${item.bien_the_id}`);
       }
 
-      const lo_hang_id = resLoHang[0].id;
-      const so_luong_hien_tai = resLoHang[0].so_luong;
+      for (const batch of batches) {
+        if (quantityNeeded === 0) break;
 
-      if (so_luong_hien_tai < item.quantity) {
-        throw new Error(`Không đủ số lượng tồn kho cho biến thể ID ${item.bien_the_id}`);
+        const usedQty = Math.min(quantityNeeded, batch.so_luong);
+
+        // Ghi chi tiết đơn hàng
+        await connection.execute(
+          `INSERT INTO chi_tiet_don_hang 
+           (ma_don_hang, bien_the_id, lo_hang_id, so_luong, don_gia)
+           VALUES (?, ?, ?, ?, ?)`,
+          [ma_don_hang, item.bien_the_id, batch.lo_hang_id, usedQty, item.gia_ban]
+        );
+
+        // Trừ tồn kho
+        await connection.execute(
+          `UPDATE bien_the_lo_hang 
+           SET so_luong = so_luong - ? 
+           WHERE bien_the_id = ? AND lo_hang_id = ?`,
+          [usedQty, item.bien_the_id, batch.lo_hang_id]
+        );
+
+        quantityNeeded -= usedQty;
       }
-
-      // Thêm chi tiết đơn hàng
-      await connection.execute(
-        `INSERT INTO chi_tiet_don_hang
-         (ma_don_hang, bien_the_id, lo_hang_id, so_luong, don_gia)
-         VALUES (?, ?, ?, ?, ?)`,
-        [ma_don_hang, item.bien_the_id, lo_hang_id, item.quantity, item.gia_ban]
-      );
-
-      // Trừ số lượng trong kho
-      await connection.execute(
-        `UPDATE bien_the_lo_hang
-         SET so_luong = so_luong - ?
-         WHERE bien_the_id = ? AND lo_hang_id = ?`,
-        [item.quantity, item.bien_the_id, lo_hang_id]
-      );
     }
 
-    // 3. Ghi trạng thái đơn hàng
+    // 3. Trạng thái đơn hàng
     await connection.execute(
-      `INSERT INTO lich_su_trang_thai_don_hang
-         (ma_don_hang, trang_thai, nguoi_cap_nhat)
+      `INSERT INTO lich_su_trang_thai_don_hang 
+       (ma_don_hang, trang_thai, nguoi_cap_nhat) 
        VALUES (?, ?, ?)`,
       [ma_don_hang, "Đã đóng gói", 1]
     );
@@ -105,7 +211,7 @@ exports.createOrder = async (req, res) => {
     });
   } catch (err) {
     await connection.rollback();
-    console.error("Lỗi khi tạo đơn hàng:", err);
+    console.error("❌ Lỗi khi tạo đơn hàng:", err);
     res.status(500).json({
       message: "Lỗi khi tạo đơn hàng",
       error: err.message
@@ -155,7 +261,6 @@ exports.getAllOrdersWithDetails = async (req, res) => {
       ORDER BY dh.ma_don_hang DESC;
     `);
 
-    // Gom đơn hàng theo ma_don_hang
     const donHangs = {};
 
     for (const row of rows) {
@@ -176,13 +281,28 @@ exports.getAllOrdersWithDetails = async (req, res) => {
         };
       }
 
-      donHangs[ma].chi_tiet.push({
-        ten_san_pham: row.ten_san_pham,
-        ten_size: row.ten_size,
-        ten_mau: row.ten_mau,
-        so_luong: row.so_luong,
-        don_gia: row.don_gia
-      });
+      const chiTiet = donHangs[ma].chi_tiet;
+
+      // Tìm xem chi tiết này đã có chưa (so sánh theo tên sản phẩm, size, màu, giá)
+      const existingItem = chiTiet.find(
+        (item) =>
+          item.ten_san_pham === row.ten_san_pham &&
+          item.ten_size === row.ten_size &&
+          item.ten_mau === row.ten_mau &&
+          item.don_gia === row.don_gia
+      );
+
+      if (existingItem) {
+        existingItem.so_luong += row.so_luong;
+      } else {
+        chiTiet.push({
+          ten_san_pham: row.ten_san_pham,
+          ten_size: row.ten_size,
+          ten_mau: row.ten_mau,
+          so_luong: row.so_luong,
+          don_gia: row.don_gia
+        });
+      }
     }
 
     res.json(Object.values(donHangs));
@@ -191,6 +311,7 @@ exports.getAllOrdersWithDetails = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: err.message });
   }
 };
+
 
 exports.updateOrderStatus = async (req, res) => {
   const { id } = req.params; // id ở đây là ma_don_hang
